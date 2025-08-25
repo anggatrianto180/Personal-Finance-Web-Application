@@ -281,11 +281,23 @@
             };
 
             const toggleAllVisibility = () => {
-                const newVisibility = !visibilityState.income;
-                visibilityState.income = newVisibility;
-                visibilityState.balance = newVisibility;
-                localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
-                updateVisibilityUI();
+                const isCurrentlyVisible = visibilityState.income;
+                if (isCurrentlyVisible) {
+                    visibilityState.income = false;
+                    visibilityState.balance = false;
+                    localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
+                    updateVisibilityUI();
+                } else {
+                    const password = prompt("Enter password to show amounts:");
+                    if (password === "0124") {
+                        visibilityState.income = true;
+                        visibilityState.balance = true;
+                        localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
+                        updateVisibilityUI();
+                    } else if (password !== null) {
+                        alert("Incorrect password.");
+                    }
+                }
             };
 
             incomeVisibilityToggle.addEventListener('click', toggleAllVisibility);
@@ -381,11 +393,13 @@
                 const sortedTransactions = [...transactionsToRender].sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 sortedTransactions.forEach(t => {
+                    const amountDisplay = t.type === 'Income' && !visibilityState.income ? '***' : formatCurrency(t.amount);
+                    
                     const row = document.createElement('tr');
                     row.className = t.type === 'Income' ? 'bg-green-50/50 dark:bg-green-900/20' : 'bg-red-50/50 dark:bg-red-900/20';
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${formatDate(t.date)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${formatCurrency(t.amount)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${amountDisplay}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">${t.description}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.type === 'Income' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}">
@@ -408,7 +422,7 @@
                                 <p class="font-bold text-gray-900 dark:text-gray-100">${t.description}</p>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(t.date)}</p>
                             </div>
-                            <p class="text-lg font-bold whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${formatCurrency(t.amount)}</p>
+                            <p class="text-lg font-bold whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${amountDisplay}</p>
                         </div>
                         <div class="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 space-y-1">
                             <div class="flex justify-between">
@@ -630,6 +644,8 @@
                 const savedVisibility = localStorage.getItem('visibilityState');
                 if (savedVisibility) {
                     visibilityState = JSON.parse(savedVisibility);
+                } else {
+                    visibilityState = { income: false, balance: false };
                 }
                 updateVisibilityUI();
 
