@@ -27,6 +27,10 @@
             opacity: 0;
             cursor: pointer;
         }
+        .filter-btn-active {
+            background-color: #D97706 !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body class="bg-[#F9F5F0] dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -60,7 +64,7 @@
 
             <div class="lg:col-span-2 space-y-8">
                 <section id="summary-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                    <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">This Month's Summary</h2>
+                    <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">Summary</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                         <div class="bg-green-50 dark:bg-green-900/50 p-4 rounded-lg">
                             <p class="text-sm text-green-700 dark:text-green-300 font-semibold">Income</p>
@@ -86,8 +90,8 @@
                     </div>
                 </section>
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                    <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">This Month's Expense Distribution</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This chart shows the proportion of your actual expenses for each category in the selected month.</p>
+                    <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">Expense Distribution</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This chart shows the proportion of your actual expenses for each category.</p>
                     <div class="chart-container">
                         <canvas id="expense-chart"></canvas>
                         <div id="no-expense-message" class="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400 hidden">
@@ -96,7 +100,25 @@
                     </div>
                 </section>
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                     <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">This Month's Transaction History</h2>
+                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-xl font-bold text-gray-600 dark:text-gray-300">Transaction History</h2>
+                        <div class="w-full sm:w-auto flex flex-col sm:flex-row items-stretch gap-2">
+                           <div class="flex-1 rounded-lg shadow-sm">
+                               <select id="time-period-filter" class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                   <option value="month">This Month</option>
+                                   <option value="week">This Week</option>
+                                   <option value="year">This Year</option>
+                               </select>
+                           </div>
+                           <div class="flex-1 rounded-lg shadow-sm">
+                                <div id="type-filter-buttons" class="flex w-full rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
+                                    <button data-filter="all" class="filter-btn-active w-full px-3 py-1 text-sm font-semibold rounded-md transition">All Types</button>
+                                    <button data-filter="Income" class="w-full px-3 py-1 text-sm font-semibold rounded-md transition">Income</button>
+                                    <button data-filter="Expense" class="w-full px-3 py-1 text-sm font-semibold rounded-md transition">Expense</button>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
                     <div class="hidden lg:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -232,6 +254,8 @@
             const darkIcon = document.getElementById('theme-icon-dark');
             const incomeVisibilityToggle = document.getElementById('income-visibility-toggle');
             const balanceVisibilityToggle = document.getElementById('balance-visibility-toggle');
+            const timePeriodFilter = document.getElementById('time-period-filter');
+            const typeFilterButtons = document.getElementById('type-filter-buttons');
             
             const desktopFormContainer = document.getElementById('desktop-form-container');
             const mobileFormContainer = document.getElementById('mobile-form-container');
@@ -243,6 +267,7 @@
             let allTransactions = [];
             let expenseChart;
             let visibilityState = { income: false, balance: false };
+            let typeFilter = 'all';
 
             const categories = { 
                 Income: ['Salary', 'Other Income'], 
@@ -329,6 +354,13 @@
                 const months = [...new Set(allTransactions.map(t => t.date.substring(0, 7)))].sort().reverse();
                 const currentSelection = monthFilter.value;
                 monthFilter.innerHTML = '';
+                
+                const now = new Date();
+                const currentMonthStr = now.toISOString().substring(0, 7);
+                if (!months.includes(currentMonthStr)) {
+                    months.unshift(currentMonthStr);
+                }
+
                 months.forEach(monthStr => {
                     const [year, month] = monthStr.split('-');
                     const date = new Date(year, month - 1);
@@ -336,14 +368,12 @@
                     option.value = monthStr; option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                     monthFilter.appendChild(option);
                 });
-                if (months.length === 0) {
-                    const now = new Date();
-                    const option = document.createElement('option');
-                    option.value = now.toISOString().substring(0, 7);
-                    option.textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                    monthFilter.appendChild(option);
+
+                if (currentSelection && months.includes(currentSelection)) {
+                    monthFilter.value = currentSelection;
+                } else {
+                    monthFilter.value = currentMonthStr;
                 }
-                if (months.includes(currentSelection)) monthFilter.value = currentSelection;
             };
 
             window.startEditTransaction = (id) => {
@@ -384,7 +414,7 @@
                 mobileCardList.innerHTML = '';
 
                 if (transactionsToRender.length === 0) {
-                    const noDataMessage = 'No transactions this month.';
+                    const noDataMessage = 'No transactions for this period.';
                     desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">${noDataMessage}</td></tr>`;
                     mobileCardList.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">${noDataMessage}</div>`;
                     return;
@@ -446,17 +476,35 @@
             const renderDashboard = () => {
                 const selectedMonth = monthFilter.value;
                 if (!selectedMonth) return;
-                const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
-                const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
-                const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
+                
+                let monthFilteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+
+                const totalIncome = monthFilteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
+                const totalExpense = monthFilteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
                 const netBalance = totalIncome - totalExpense;
 
                 document.getElementById('total-income').textContent = visibilityState.income ? formatCurrency(totalIncome) : '***';
                 document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
                 document.getElementById('net-balance').textContent = visibilityState.balance ? formatCurrency(netBalance) : '***';
                 
-                renderExpenseChart(filteredTransactions);
-                renderTable(filteredTransactions);
+                renderExpenseChart(monthFilteredTransactions);
+
+                let finalFilteredTransactions = monthFilteredTransactions;
+                const timePeriod = timePeriodFilter.value;
+                const now = new Date();
+                if(timePeriod === 'week') {
+                    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+                    startOfWeek.setHours(0,0,0,0);
+                    finalFilteredTransactions = finalFilteredTransactions.filter(t => new Date(t.date) >= startOfWeek);
+                } else if (timePeriod === 'year') {
+                    const yearStr = now.getFullYear().toString();
+                    finalFilteredTransactions = allTransactions.filter(t => t.date.startsWith(yearStr));
+                }
+                
+                if (typeFilter !== 'all') {
+                    finalFilteredTransactions = finalFilteredTransactions.filter(t => t.type === typeFilter);
+                }
+                renderTable(finalFilteredTransactions);
             };
             
             const renderExpenseChart = (filteredTransactions) => {
@@ -577,41 +625,55 @@
             };
             
             const exportToExcel = () => {
-                const selectedMonth = monthFilter.value;
-                const selectedMonthName = monthFilter.options[monthFilter.selectedIndex].text;
-                const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                const password = prompt("Enter password to export data:");
+                if (password === "0124") {
+                    const selectedMonth = monthFilter.value;
+                    const selectedMonthName = monthFilter.options[monthFilter.selectedIndex].text;
+                    const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
 
-                if (filteredTransactions.length === 0) {
-                    alert('No data to export for this month.');
-                    return;
+                    if (filteredTransactions.length === 0) {
+                        alert('No data to export for this month.');
+                        return;
+                    }
+
+                    const dataForExport = filteredTransactions.map(t => ({
+                        Date: formatDate(t.date),
+                        Description: t.description,
+                        Category: t.category,
+                        Type: t.type,
+                        Account: t.account,
+                        Amount: t.amount
+                    }));
+
+                    const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
+                    const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
+
+                    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+                    
+                    XLSX.utils.sheet_add_aoa(worksheet, [
+                        [],
+                        ["SUMMARY"],
+                        ["Total Income", totalIncome],
+                        ["Total Expense", totalExpense],
+                        ["Balance", totalIncome - totalExpense]
+                    ], { origin: -1 });
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
+                    XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
+                } else if (password !== null) {
+                    alert("Incorrect password.");
                 }
-
-                const dataForExport = filteredTransactions.map(t => ({
-                    Date: formatDate(t.date),
-                    Description: t.description,
-                    Category: t.category,
-                    Type: t.type,
-                    Account: t.account,
-                    Amount: t.amount
-                }));
-
-                const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
-                const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
-
-                const worksheet = XLSX.utils.json_to_sheet(dataForExport);
-                
-                XLSX.utils.sheet_add_aoa(worksheet, [
-                    [],
-                    ["SUMMARY"],
-                    ["Total Income", totalIncome],
-                    ["Total Expense", totalExpense],
-                    ["Balance", totalIncome - totalExpense]
-                ], { origin: -1 });
-
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
-                XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
             };
+
+            typeFilterButtons.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    typeFilter = e.target.dataset.filter;
+                    typeFilterButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('filter-btn-active'));
+                    e.target.classList.add('filter-btn-active');
+                    renderDashboard();
+                }
+            });
 
             const desktopForm = desktopFormContainer.querySelector('form');
             const mobileForm = mobileFormContainer.querySelector('form');
@@ -634,6 +696,7 @@
                 }
             });
             monthFilter.addEventListener('change', renderDashboard);
+            timePeriodFilter.addEventListener('change', renderDashboard);
             exportBtn.addEventListener('click', exportToExcel);
 
             const init = () => {
@@ -657,7 +720,7 @@
 
                 onSnapshot(transactionsCol, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    populateMonthFilter(allTransactions, monthFilter);
+                    populateMonthFilter();
                     renderDashboard();
                 }, (error) => {
                     console.error("Error fetching transactions: ", error);
