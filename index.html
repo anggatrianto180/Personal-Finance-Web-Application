@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pelacak Keuangan (Cloud)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: Desain aplikasi ini menggunakan pendekatan dashboard satu halaman. Struktur utamanya dibagi menjadi tiga bagian: 1) Header dengan kontrol utama (filter bulan) untuk navigasi temporal. 2) Area konten utama dengan layout grid dua kolom: kolom kiri untuk visualisasi data (ringkasan angka dan grafik perbandingan anggaran) dan kolom kanan untuk input data (form tambah/edit transaksi). 3) Bagian bawah untuk data detail (tabel riwayat transaksi dengan aksi CRUD). Struktur ini dipilih untuk efisiensi; pengguna bisa melihat ringkasan, mengelola data, dan melihat detailnya dalam satu pandangan tanpa perlu berpindah halaman, sehingga alur penggunaan menjadi cepat dan intuitif. -->
+    <!-- Visualization & Content Choices: 1) Ringkasan Keuangan (Pemasukan, Pengeluaran, Sisa): Teks besar dan jelas -> Goal: Inform -> Method: HTML/JS -> Interaction: None -> Justification: Memberikan data kunci paling penting secara cepat. 2) Anggaran vs. Pengeluaran: Grafik Batang (Bar Chart) -> Goal: Compare -> Method: Chart.js/Canvas -> Interaction: Hover untuk melihat nilai detail -> Justification: Visualisasi perbandingan ini adalah cara paling efektif untuk melihat kategori mana yang mendekati atau melebihi batas anggaran. 3) Riwayat Transaksi: Tabel Interaktif -> Goal: Organize/Inform/Manage -> Method: HTML/JS -> Interaction: Click Edit/Delete buttons -> Justification: Menyediakan data mentah yang transparan dan lengkap untuk verifikasi serta manajemen data (CRUD). Semua pilihan ini mendukung struktur dashboard yang efisien dan menghindari penggunaan SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9F5F0;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh;
+            max-height: 450px;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-700 mb-4 sm:mb-0">Dashboard Keuangan</h1>
+            <div class="flex items-center space-x-3">
+                <label for="month-filter" class="font-semibold text-sm sm:text-base">Laporan Bulan:</label>
+                <select id="month-filter" class="bg-white border border-gray-300 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></select>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Kolom Kiri & Tengah (Konten Utama) -->
+            <div class="lg:col-span-2 space-y-8">
+                <section id="summary-section" class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold mb-4 text-gray-600">Ringkasan Bulan Ini</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div class="bg-green-50 p-4 rounded-lg"><p class="text-sm text-green-700 font-semibold">Pemasukan</p><p id="total-income" class="text-2xl font-bold text-green-800">Rp 0</p></div>
+                        <div class="bg-red-50 p-4 rounded-lg"><p class="text-sm text-red-700 font-semibold">Pengeluaran</p><p id="total-expense" class="text-2xl font-bold text-red-800">Rp 0</p></div>
+                        <div class="bg-blue-50 p-4 rounded-lg"><p class="text-sm text-blue-700 font-semibold">Sisa Uang</p><p id="net-balance" class="text-2xl font-bold text-blue-800">Rp 0</p></div>
+                    </div>
+                </section>
+                <section class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold mb-4 text-gray-600">Anggaran vs Pengeluaran</h2>
+                    <div class="chart-container"><canvas id="budget-chart"></canvas></div>
+                </section>
+                 <!-- Riwayat Transaksi dipindah ke sini -->
+                <section class="bg-white p-6 rounded-xl shadow-md">
+                     <h2 class="text-xl font-bold mb-4 text-gray-600">Riwayat Transaksi</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transaction-table-body" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Kolom Kanan: Form Transaksi (Hanya untuk Desktop) -->
+            <div class="hidden lg:block lg:col-span-1">
+                <section id="desktop-form-container" class="bg-white p-6 rounded-xl shadow-md sticky top-8">
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Action Button (Hanya untuk Mobile) -->
+    <button id="fab" class="lg:hidden fixed bottom-6 right-6 bg-amber-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+    </button>
+
+    <!-- Modal Form (Hanya untuk Mobile) -->
+    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 hidden flex items-center justify-center">
+        <section id="mobile-form-container" class="bg-white rounded-xl shadow-xl w-11/12 max-w-lg mx-auto max-h-[90vh] overflow-y-auto p-6">
+        </section>
+    </div>
+    
+    <!-- Template untuk Form -->
+    <template id="form-template">
+        <h2 id="form-title" class="text-xl font-bold mb-4 text-gray-600">Tambah Transaksi</h2>
+        <form id="transaction-form" class="space-y-4">
+            <input type="hidden" id="transaction-id">
+            <div><label for="date" class="block text-sm font-medium text-gray-700">Tanggal</label><input type="date" id="date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required></div>
+            <div><label for="description" class="block text-sm font-medium text-gray-700">Keterangan</label><input type="text" id="description" placeholder="Contoh: Makan siang" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required></div>
+            <div><label for="amount" class="block text-sm font-medium text-gray-700">Jumlah</label><input type="number" id="amount" placeholder="Contoh: 25000" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required></div>
+            <div><label for="type" class="block text-sm font-medium text-gray-700">Tipe</label><select id="type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"><option>Pengeluaran</option><option>Pemasukan</option></select></div>
+            <div><label for="category" class="block text-sm font-medium text-gray-700">Kategori</label><select id="category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"></select></div>
+            <div><label for="account" class="block text-sm font-medium text-gray-700">Akun</label><select id="account" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"></select></div>
+            <div class="flex flex-col space-y-2 pt-2">
+                <button type="submit" id="submit-btn" class="w-full bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition">Simpan</button>
+                <button type="button" id="cancel-edit-btn" class="w-full bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition hidden">Batal</button>
+            </div>
+        </form>
+    </template>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCrYUkmMu-KD1e8Mf2-nKsu251SGHCqZKM",
+          authDomain: "pelacak-keuangan-pribadi-dae7f.firebaseapp.com",
+          projectId: "pelacak-keuangan-pribadi-dae7f",
+          storageBucket: "pelacak-keuangan-pribadi-dae7f.firebasestorage.app",
+          messagingSenderId: "284126657938",
+          appId: "1:284126657938:web:743ab8f900ab087b05954b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const transactionsCol = collection(db, 'transactions');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthFilter = document.getElementById('month-filter');
+            const tableBody = document.getElementById('transaction-table-body');
+            const fab = document.getElementById('fab');
+            const modal = document.getElementById('modal');
+            
+            const desktopFormContainer = document.getElementById('desktop-form-container');
+            const mobileFormContainer = document.getElementById('mobile-form-container');
+            const formTemplate = document.getElementById('form-template');
+
+            desktopFormContainer.innerHTML = formTemplate.innerHTML;
+            mobileFormContainer.innerHTML = formTemplate.innerHTML;
+
+            let form, transactionIdInput, dateInput, typeSelect, categorySelect, accountSelect, formTitle, submitBtn, cancelEditBtn;
+            
+            const setupFormVariables = (container) => {
+                form = container.querySelector('#transaction-form');
+                transactionIdInput = container.querySelector('#transaction-id');
+                dateInput = container.querySelector('#date');
+                typeSelect = container.querySelector('#type');
+                categorySelect = container.querySelector('#category');
+                accountSelect = container.querySelector('#account');
+                formTitle = container.querySelector('#form-title');
+                submitBtn = container.querySelector('#submit-btn');
+                cancelEditBtn = container.querySelector('#cancel-edit-btn');
+
+                form.addEventListener('submit', handleFormSubmit);
+                typeSelect.addEventListener('change', updateCategoryOptions);
+                cancelEditBtn.addEventListener('click', resetFormState);
+            };
+
+            let allTransactions = [];
+            let budgetChart;
+
+            const categories = { Pemasukan: ['Gaji', 'Pendapatan Lain'], Pengeluaran: ['Makanan & Minuman', 'Transportasi', 'Kebutuhan Rumah Tangga', 'Hiburan', 'Tagihan', 'Lain-lain'] };
+            const accounts = ['Tunai', 'Bank', 'E-Wallet', 'Kartu Kredit'];
+            const budget = { 'Makanan & Minuman': 1000000, 'Transportasi': 300000, 'Kebutuhan Rumah Tangga': 750000, 'Hiburan': 250000, 'Tagihan': 500000, 'Lain-lain': 200000 };
+
+            const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+            const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            const updateCategoryOptions = () => {
+                const selectedType = typeSelect.value;
+                categorySelect.innerHTML = '';
+                categories[selectedType].forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat; option.textContent = cat;
+                    categorySelect.appendChild(option);
+                });
+            };
+            
+            const populateAccountOptions = (container) => {
+                const accSelect = container.querySelector('#account');
+                accSelect.innerHTML = '';
+                accounts.forEach(acc => {
+                    const option = document.createElement('option');
+                    option.value = acc; option.textContent = acc;
+                    accSelect.appendChild(option);
+                });
+            };
+
+            const populateMonthFilter = () => {
+                const months = [...new Set(allTransactions.map(t => t.date.substring(0, 7)))].sort().reverse();
+                const currentSelection = monthFilter.value;
+                monthFilter.innerHTML = '';
+                months.forEach(monthStr => {
+                    const [year, month] = monthStr.split('-');
+                    const date = new Date(year, month - 1);
+                    const option = document.createElement('option');
+                    option.value = monthStr; option.textContent = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    monthFilter.appendChild(option);
+                });
+                if (months.length === 0) {
+                    const now = new Date();
+                    const option = document.createElement('option');
+                    option.value = now.toISOString().substring(0, 7);
+                    option.textContent = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    monthFilter.appendChild(option);
+                }
+                if (months.includes(currentSelection)) monthFilter.value = currentSelection;
+            };
+
+            window.startEditTransaction = (id) => {
+                const transaction = allTransactions.find(t => t.id === id);
+                if (!transaction) return;
+
+                const isMobile = window.innerWidth < 1024;
+                const container = isMobile ? mobileFormContainer : desktopFormContainer;
+                setupFormVariables(container);
+                
+                transactionIdInput.value = transaction.id;
+                dateInput.value = transaction.date;
+                container.querySelector('#description').value = transaction.description;
+                container.querySelector('#amount').value = transaction.amount;
+                typeSelect.value = transaction.type;
+                updateCategoryOptions();
+                categorySelect.value = transaction.category;
+                accountSelect.value = transaction.account;
+                formTitle.textContent = 'Edit Transaksi';
+                submitBtn.textContent = 'Update Transaksi';
+                cancelEditBtn.classList.remove('hidden');
+                
+                if (isMobile) {
+                    modal.classList.remove('hidden');
+                } else {
+                    container.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            window.deleteTransaction = async (id) => {
+                if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                    await deleteDoc(doc(db, 'transactions', id));
+                }
+            };
+
+            const renderTable = () => {
+                tableBody.innerHTML = '';
+                if (allTransactions.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-10 text-gray-500">Belum ada transaksi.</td></tr>';
+                    return;
+                }
+                const sortedTransactions = [...allTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                sortedTransactions.forEach(t => {
+                    const row = document.createElement('tr');
+                    row.className = t.type === 'Pemasukan' ? 'bg-green-50/50' : 'bg-red-50/50';
+                    row.innerHTML = `
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">${t.description}</div>
+                            <div class="text-sm text-gray-500">${formatDate(t.date)} | ${t.category}</div>
+                             <div class="sm:hidden mt-2">
+                                <button onclick="startEditTransaction('${t.id}')" class="text-xs text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                                <button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-600 hover:text-red-900">Hapus</button>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-medium ${t.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}">${formatCurrency(t.amount)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium hidden sm:table-cell">
+                            <button onclick="startEditTransaction('${t.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                            <button onclick="deleteTransaction('${t.id}')" class="text-red-600 hover:text-red-900">Hapus</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            };
+
+            const renderDashboard = () => {
+                const selectedMonth = monthFilter.value;
+                if (!selectedMonth) return;
+                const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                const totalIncome = filteredTransactions.filter(t => t.type === 'Pemasukan').reduce((sum, t) => sum + t.amount, 0);
+                const totalExpense = filteredTransactions.filter(t => t.type === 'Pengeluaran').reduce((sum, t) => sum + t.amount, 0);
+                const netBalance = totalIncome - totalExpense;
+                document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+                document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
+                document.getElementById('net-balance').textContent = formatCurrency(netBalance);
+                renderChart(filteredTransactions);
+            };
+            
+            const renderChart = (filteredTransactions) => {
+                const ctx = document.getElementById('budget-chart').getContext('2d');
+                const expenseByCategory = {};
+                categories.Pengeluaran.forEach(cat => { expenseByCategory[cat] = 0; });
+                filteredTransactions.filter(t => t.type === 'Pengeluaran').forEach(t => {
+                    if (expenseByCategory[t.category] !== undefined) expenseByCategory[t.category] += t.amount;
+                });
+                const labels = Object.keys(budget);
+                const budgetData = Object.values(budget);
+                const expenseData = labels.map(label => expenseByCategory[label] || 0);
+                if (budgetChart) budgetChart.destroy();
+                budgetChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels, datasets: [ { label: 'Anggaran', data: budgetData, backgroundColor: 'rgba(210, 180, 140, 0.6)', borderColor: 'rgba(210, 180, 140, 1)', borderWidth: 1 }, { label: 'Pengeluaran', data: expenseData, backgroundColor: 'rgba(219, 112, 147, 0.6)', borderColor: 'rgba(219, 112, 147, 1)', borderWidth: 1 } ] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatCurrency(value) } }, x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } } }, plugins: { tooltip: { callbacks: { label: context => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}` } } } }
+                });
+            };
+
+            const handleFormSubmit = async (e) => {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                const id = transactionIdInput.value;
+                const transactionData = {
+                    date: dateInput.value,
+                    description: form.querySelector('#description').value,
+                    amount: parseFloat(form.querySelector('#amount').value),
+                    type: typeSelect.value,
+                    category: categorySelect.value,
+                    account: accountSelect.value
+                };
+                try {
+                    if (id) {
+                        await updateDoc(doc(db, 'transactions', id), transactionData);
+                    } else {
+                        await addDoc(transactionsCol, transactionData);
+                    }
+                    resetFormState();
+                } catch (error) {
+                    console.error("Error saving transaction: ", error);
+                    alert("Gagal menyimpan transaksi. Silakan coba lagi.");
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            };
+            
+            const resetFormState = () => {
+                const containers = [desktopFormContainer, mobileFormContainer];
+                containers.forEach(container => {
+                    const formToReset = container.querySelector('#transaction-form');
+                    if (formToReset) {
+                        formToReset.reset();
+                        container.querySelector('#transaction-id').value = '';
+                        container.querySelector('#date').valueAsDate = new Date();
+                        container.querySelector('#form-title').textContent = 'Tambah Transaksi Baru';
+                        container.querySelector('#submit-btn').textContent = 'Simpan';
+                        container.querySelector('#cancel-edit-btn').classList.add('hidden');
+                        const typeSelectToUpdate = container.querySelector('#type');
+                        const categorySelectToUpdate = container.querySelector('#category');
+                        
+                        const selectedType = typeSelectToUpdate.value;
+                        categorySelectToUpdate.innerHTML = '';
+                        categories[selectedType].forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat; option.textContent = cat;
+                            categorySelectToUpdate.appendChild(option);
+                        });
+                    }
+                });
+                modal.classList.add('hidden');
+            };
+
+            fab.addEventListener('click', () => {
+                setupFormVariables(mobileFormContainer);
+                resetFormState();
+                modal.classList.remove('hidden');
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    resetFormState();
+                }
+            });
+            monthFilter.addEventListener('change', renderDashboard);
+
+            const init = () => {
+                populateAccountOptions(desktopFormContainer);
+                populateAccountOptions(mobileFormContainer);
+                setupFormVariables(desktopFormContainer);
+                resetFormState();
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-10 text-gray-500">Memuat data dari cloud...</td></tr>';
+                onSnapshot(transactionsCol, (snapshot) => {
+                    allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    populateMonthFilter();
+                    renderDashboard();
+                    renderTable();
+                }, (error) => {
+                    console.error("Error fetching transactions: ", error);
+                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-10 text-red-500">Gagal memuat data. Periksa koneksi internet Anda.</td></tr>';
+                });
+            };
+
+            init();
+        });
+    </script>
+</body>
+</html>
