@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Finance Tracker</title>
-    <link rel="icon" href="LogoAT.png">
+    <!-- Ganti dengan logo Anda: pastikan file LogoAT.png ada di folder yang sama -->
+    <link rel="icon" href="LogoAT.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: This app uses a single-page dashboard approach. The structure is divided into three main parts: 1) A header with the primary control (month filter) for temporal navigation. 2) A main content area with a two-column grid layout: the left column for data visualization (summary figures and budget comparison chart) and the right for data input (add/edit transaction form). 3) A bottom section for detailed data (transaction history table with CRUD actions). This structure was chosen for efficiency; users can view summaries, manage data, and see details in a single view without navigating away, making the workflow fast and intuitive. -->
-    <!-- Visualization & Content Choices: 1) Financial Summary (Income, Expenses, Balance): Large, clear text -> Goal: Inform -> Method: HTML/JS -> Interaction: None -> Justification: Provides the most critical key data quickly. 2) Budget vs. Expenses: Bar Chart -> Goal: Compare -> Method: Chart.js/Canvas -> Interaction: Hover to see detailed values -> Justification: This visual comparison is the most effective way to see which categories are approaching or exceeding their budget limits. 3) Transaction History: Interactive Table -> Goal: Organize/Inform/Manage -> Method: HTML/JS -> Interaction: Click Edit/Delete buttons -> Justification: Provides transparent and complete raw data for verification and data management (CRUD). All these choices support an efficient dashboard structure and avoid the use of SVG/Mermaid. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -20,13 +17,12 @@
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 450px; /* Disesuaikan untuk donut chart */
+            max-width: 450px;
             margin-left: auto;
             margin-right: auto;
             height: 40vh;
             max-height: 450px;
         }
-        /* Custom style for date input to show icon */
         input[type="date"]::-webkit-calendar-picker-indicator {
             opacity: 0;
             cursor: pointer;
@@ -39,33 +35,54 @@
 
         <!-- Header -->
         <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-            <h1 class="text-3xl font-bold text-gray-700 dark:text-gray-100">Financial Dashboard</h1>
-            <div class="flex items-center space-x-3">
-                <label for="month-filter" class="font-semibold text-sm sm:text-base whitespace-nowrap">Monthly Report:</label>
-                <select id="month-filter" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></select>
-                <button id="export-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span class="hidden sm:inline">Export</span>
-                </button>
-                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 dark:focus:ring-offset-gray-900">
-                    <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                    <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                </button>
+            <h1 class="text-3xl font-bold text-gray-700 dark:text-gray-100 self-start sm:self-center">Financial Dashboard</h1>
+            <div class="w-full sm:w-auto flex flex-col items-start sm:flex-row sm:items-center gap-4 sm:gap-2">
+                <div class="flex items-center space-x-2">
+                    <label for="month-filter" class="font-semibold text-sm sm:text-base whitespace-nowrap">Monthly Report:</label>
+                    <select id="month-filter" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></select>
+                </div>
+                <div class="flex items-center space-x-3 self-start sm:self-center">
+                    <button id="export-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span class="hidden sm:inline">Export</span>
+                    </button>
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 dark:focus:ring-offset-gray-900">
+                        <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    </button>
+                </div>
             </div>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            <!-- Kolom Kiri & Tengah (Konten Utama) -->
             <div class="lg:col-span-2 space-y-8">
                 <section id="summary-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
                     <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">This Month's Summary</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                        <div class="bg-green-50 dark:bg-green-900/50 p-4 rounded-lg"><p class="text-sm text-green-700 dark:text-green-300 font-semibold">Income</p><p id="total-income" class="text-2xl font-bold text-green-800 dark:text-green-200">Rp 0</p></div>
+                        <div class="bg-green-50 dark:bg-green-900/50 p-4 rounded-lg">
+                            <p class="text-sm text-green-700 dark:text-green-300 font-semibold">Income</p>
+                            <div class="flex items-center justify-center gap-2">
+                                <p id="total-income" class="text-2xl font-bold text-green-800 dark:text-green-200">Rp 0</p>
+                                <button id="income-visibility-toggle" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                    <svg class="w-6 h-6" id="income-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    <svg class="w-6 h-6 hidden" id="income-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>
+                                </button>
+                            </div>
+                        </div>
                         <div class="bg-red-50 dark:bg-red-900/50 p-4 rounded-lg"><p class="text-sm text-red-700 dark:text-red-300 font-semibold">Expenses</p><p id="total-expense" class="text-2xl font-bold text-red-800 dark:text-red-200">Rp 0</p></div>
-                        <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg"><p class="text-sm text-blue-700 dark:text-blue-300 font-semibold">Balance</p><p id="net-balance" class="text-2xl font-bold text-blue-800 dark:text-blue-200">Rp 0</p></div>
+                        <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg">
+                            <p class="text-sm text-blue-700 dark:text-blue-300 font-semibold">Balance</p>
+                             <div class="flex items-center justify-center gap-2">
+                                <p id="net-balance" class="text-2xl font-bold text-blue-800 dark:text-blue-200">Rp 0</p>
+                                <button id="balance-visibility-toggle" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                    <svg class="w-6 h-6" id="balance-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    <svg class="w-6 h-6 hidden" id="balance-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
@@ -78,10 +95,9 @@
                         </div>
                     </div>
                 </section>
-                 <!-- Riwayat Transaksi dipindah ke sini -->
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
                      <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">This Month's Transaction History</h2>
-                    <div class="overflow-x-auto">
+                    <div class="hidden lg:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -93,14 +109,15 @@
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="transaction-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="desktop-tbody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             </tbody>
                         </table>
+                    </div>
+                    <div id="mobile-card-list" class="space-y-4 lg:hidden">
                     </div>
                 </section>
             </div>
 
-            <!-- Kolom Kanan: Form Transaksi (Hanya untuk Desktop) -->
             <div class="hidden lg:block lg:col-span-1">
                 <section id="desktop-form-container" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md sticky top-8">
                 </section>
@@ -108,25 +125,21 @@
         </main>
     </div>
 
-    <!-- Floating Action Button (Hanya untuk Mobile) -->
     <button id="fab" class="lg:hidden fixed bottom-6 right-6 bg-amber-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
     </button>
 
-    <!-- Modal Form (Hanya untuk Mobile) -->
     <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
         <section id="mobile-form-container" class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-11/12 max-w-lg mx-auto max-h-[90vh] overflow-y-auto p-6">
         </section>
     </div>
     
-    <!-- Template untuk Form -->
     <template id="form-template">
         <h2 id="form-title" class="text-xl font-bold mb-6 text-gray-600 dark:text-gray-300">Add Transaction</h2>
         <form id="transaction-form" class="space-y-4">
             <input type="hidden" id="transaction-id">
-            
             <div>
                 <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
                 <div class="relative mt-1">
@@ -136,7 +149,6 @@
                     <input type="date" id="date" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
                 </div>
             </div>
-
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                 <div class="relative mt-1">
@@ -146,7 +158,6 @@
                     <input type="text" id="description" placeholder="e.g., Lunch" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
                 </div>
             </div>
-
             <div>
                 <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
                 <div class="relative mt-1">
@@ -156,7 +167,6 @@
                     <input type="number" id="amount" placeholder="25000" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
                 </div>
             </div>
-            
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
@@ -177,7 +187,6 @@
                     </div>
                 </div>
             </div>
-
             <div>
                 <label for="account" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Account</label>
                 <div class="relative mt-1">
@@ -187,7 +196,6 @@
                     <select id="account" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"></select>
                 </div>
             </div>
-
             <div class="flex flex-col space-y-2 pt-4">
                 <button type="submit" id="submit-btn" class="w-full bg-amber-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 dark:focus:ring-offset-gray-800 transition">Save</button>
                 <button type="button" id="cancel-edit-btn" class="w-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-2.5 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-offset-gray-800 transition hidden">Cancel</button>
@@ -195,7 +203,6 @@
         </form>
     </template>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -215,13 +222,16 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const monthFilter = document.getElementById('month-filter');
-            const tableBody = document.getElementById('transaction-table-body');
+            const desktopTbody = document.getElementById('desktop-tbody');
+            const mobileCardList = document.getElementById('mobile-card-list');
             const fab = document.getElementById('fab');
             const modal = document.getElementById('modal');
             const exportBtn = document.getElementById('export-btn');
             const themeToggle = document.getElementById('theme-toggle');
             const lightIcon = document.getElementById('theme-icon-light');
             const darkIcon = document.getElementById('theme-icon-dark');
+            const incomeVisibilityToggle = document.getElementById('income-visibility-toggle');
+            const balanceVisibilityToggle = document.getElementById('balance-visibility-toggle');
             
             const desktopFormContainer = document.getElementById('desktop-form-container');
             const mobileFormContainer = document.getElementById('mobile-form-container');
@@ -232,6 +242,7 @@
 
             let allTransactions = [];
             let expenseChart;
+            let visibilityState = { income: false, balance: false };
 
             const categories = { 
                 Income: ['Salary', 'Other Income'], 
@@ -242,7 +253,6 @@
             const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
             const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            // Theme Management
             const applyTheme = (theme) => {
                 if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
@@ -254,13 +264,32 @@
                     darkIcon.classList.remove('hidden');
                 }
                 localStorage.setItem('theme', theme);
-                renderDashboard(); // Re-render chart with new colors
+                renderDashboard();
             };
 
             themeToggle.addEventListener('click', () => {
                 const isDark = document.documentElement.classList.contains('dark');
                 applyTheme(isDark ? 'light' : 'dark');
             });
+            
+            const updateVisibilityUI = () => {
+                document.getElementById('income-eye-open').classList.toggle('hidden', !visibilityState.income);
+                document.getElementById('income-eye-closed').classList.toggle('hidden', visibilityState.income);
+                document.getElementById('balance-eye-open').classList.toggle('hidden', !visibilityState.balance);
+                document.getElementById('balance-eye-closed').classList.toggle('hidden', visibilityState.balance);
+                renderDashboard();
+            };
+
+            const toggleAllVisibility = () => {
+                const newVisibility = !visibilityState.income;
+                visibilityState.income = newVisibility;
+                visibilityState.balance = newVisibility;
+                localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
+                updateVisibilityUI();
+            };
+
+            incomeVisibilityToggle.addEventListener('click', toggleAllVisibility);
+            balanceVisibilityToggle.addEventListener('click', toggleAllVisibility);
 
             const updateCategoryOptions = (form) => {
                 const typeSelect = form.querySelector('#type');
@@ -339,12 +368,18 @@
             };
 
             const renderTable = (transactionsToRender) => {
-                tableBody.innerHTML = '';
+                desktopTbody.innerHTML = '';
+                mobileCardList.innerHTML = '';
+
                 if (transactionsToRender.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">No transactions this month.</td></tr>';
+                    const noDataMessage = 'No transactions this month.';
+                    desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">${noDataMessage}</td></tr>`;
+                    mobileCardList.innerHTML = `<div class="text-center py-10 text-gray-500 dark:text-gray-400">${noDataMessage}</div>`;
                     return;
                 }
+
                 const sortedTransactions = [...transactionsToRender].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
                 sortedTransactions.forEach(t => {
                     const row = document.createElement('tr');
                     row.className = t.type === 'Income' ? 'bg-green-50/50 dark:bg-green-900/20' : 'bg-red-50/50 dark:bg-red-900/20';
@@ -363,7 +398,34 @@
                             <button onclick="deleteTransaction('${t.id}')" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    desktopTbody.appendChild(row);
+
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-lg shadow-md ${t.type === 'Income' ? 'bg-green-50/50 dark:bg-green-900/20' : 'bg-red-50/50 dark:bg-red-900/20'}`;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-gray-900 dark:text-gray-100">${t.description}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(t.date)}</p>
+                            </div>
+                            <p class="text-lg font-bold whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${formatCurrency(t.amount)}</p>
+                        </div>
+                        <div class="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Category:</span>
+                                <span>${t.category}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Account:</span>
+                                <span>${t.account}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-right space-x-4">
+                            <button onclick="startEditTransaction('${t.id}')" class="text-indigo-600 dark:text-indigo-400 font-semibold">Edit</button>
+                            <button onclick="deleteTransaction('${t.id}')" class="text-red-600 dark:text-red-400 font-semibold">Delete</button>
+                        </div>
+                    `;
+                    mobileCardList.appendChild(card);
                 });
             };
 
@@ -374,9 +436,11 @@
                 const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
                 const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
                 const netBalance = totalIncome - totalExpense;
-                document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+
+                document.getElementById('total-income').textContent = visibilityState.income ? formatCurrency(totalIncome) : '***';
                 document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
-                document.getElementById('net-balance').textContent = formatCurrency(netBalance);
+                document.getElementById('net-balance').textContent = visibilityState.balance ? formatCurrency(netBalance) : '***';
+                
                 renderExpenseChart(filteredTransactions);
                 renderTable(filteredTransactions);
             };
@@ -522,9 +586,8 @@
 
                 const worksheet = XLSX.utils.json_to_sheet(dataForExport);
                 
-                // Add summary below the table
                 XLSX.utils.sheet_add_aoa(worksheet, [
-                    [], // Empty row
+                    [],
                     ["SUMMARY"],
                     ["Total Income", totalIncome],
                     ["Total Expense", totalExpense],
@@ -533,7 +596,6 @@
 
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
-
                 XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
             };
 
@@ -565,17 +627,27 @@
                 const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
 
-                populateAccountOptions(desktopFormContainer);
-                populateAccountOptions(mobileFormContainer);
+                const savedVisibility = localStorage.getItem('visibilityState');
+                if (savedVisibility) {
+                    visibilityState = JSON.parse(savedVisibility);
+                }
+                updateVisibilityUI();
+
+                populateAccountOptions(desktopFormContainer, accounts);
+                populateAccountOptions(mobileFormContainer, accounts);
                 resetFormState();
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</td></tr>';
+                desktopTbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</td></tr>';
+                mobileCardList.innerHTML = '<div class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</div>';
+
                 onSnapshot(transactionsCol, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    populateMonthFilter();
+                    populateMonthFilter(allTransactions, monthFilter);
                     renderDashboard();
                 }, (error) => {
                     console.error("Error fetching transactions: ", error);
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-red-500">Failed to load data. Please check your internet connection.</td></tr>';
+                    const errorMessage = 'Failed to load data. Please check your internet connection.';
+                    desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500">${errorMessage}</td></tr>`;
+                    mobileCardList.innerHTML = `<div class="text-center py-10 text-red-500">${errorMessage}</div>`;
                 });
             };
 
