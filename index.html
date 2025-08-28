@@ -28,7 +28,7 @@
             cursor: pointer;
         }
         .filter-btn-active {
-            background-color: #D97706 !important;
+            background-color: #2563eb !important;
             color: white !important;
         }
     </style>
@@ -43,7 +43,7 @@
             <div class="w-full sm:w-auto flex flex-col items-start sm:flex-row sm:items-center gap-4 sm:gap-2">
                 <div class="flex items-center space-x-2">
                     <label for="month-filter" class="font-semibold text-sm sm:text-base whitespace-nowrap">Monthly Report:</label>
-                    <select id="month-filter" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></select>
+                    <select id="month-filter" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
                 </div>
                 <div class="flex items-center space-x-3 self-start sm:self-center">
                     <button id="export-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-sm flex items-center gap-2">
@@ -52,7 +52,7 @@
                         </svg>
                         <span class="hidden sm:inline">Export</span>
                     </button>
-                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 dark:focus:ring-offset-gray-900">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
                         <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                     </button>
@@ -93,28 +93,48 @@
                     <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">Expense Distribution</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This chart shows the proportion of your actual expenses for each category.</p>
                     <div class="chart-container">
-                        <canvas id="expense-chart"></canvas>
+                        <div class="mb-3 flex flex-col items-center">
+                            <div class="inline-flex rounded-md shadow-sm" role="group">
+                                <button id="btn-distribution" class="px-3 py-1 bg-blue-600 text-white rounded-l-md">Distribution</button>
+                                <button id="btn-trend" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-r-md">Trend</button>
+                            </div>
+                            <div id="trend-controls" class="hidden mt-2 flex items-center gap-2">
+                                <label class="text-xs text-gray-500 dark:text-gray-400 mr-1">Range:</label>
+                                <select id="trend-range" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm">
+                                    <option value="6">6 months</option>
+                                    <option value="12">12 months</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="distribution-canvas-wrapper" class="w-full flex justify-center">
+                            <canvas id="expense-chart" class="max-w-full"></canvas>
+                        </div>
+                        <div id="trend-canvas-wrapper" class="w-full hidden">
+                            <canvas id="trend-chart" class="max-w-full"></canvas>
+                        </div>
                         <div id="no-expense-message" class="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400 hidden">
                             No expense data available.
                         </div>
                     </div>
+                    <div id="budget-status" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
                 </section>
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                     <div class="flex flex-col justify-between items-start mb-4 gap-4">
                         <h2 class="text-xl font-bold text-gray-600 dark:text-gray-300">Transaction History</h2>
-                        <div class="w-full sm:w-auto flex flex-col sm:flex-row items-stretch gap-2">
-                           <div class="flex-1 rounded-lg shadow-sm">
-                               <select id="time-period-filter" class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500">
-                                   <option value="month">This Month</option>
-                                   <option value="week">This Week</option>
-                                   <option value="year">This Year</option>
-                               </select>
-                           </div>
-                           <div class="flex-1 rounded-lg shadow-sm">
-                                <div id="type-filter-buttons" class="flex w-full rounded-lg bg-gray-200 dark:bg-gray-700 p-1">
-                                    <button data-filter="all" class="filter-btn-active w-full px-3 py-1 text-sm font-semibold rounded-md transition">All Types</button>
-                                    <button data-filter="Income" class="w-full px-3 py-1 text-sm font-semibold rounded-md transition">Income</button>
-                                    <button data-filter="Expense" class="w-full px-3 py-1 text-sm font-semibold rounded-md transition">Expense</button>
+                        <div class="w-full flex flex-col gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <select id="time-period-filter" class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-semibold h-11 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="month">This Month</option>
+                                    <option value="week">This Week</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                                <input id="search-input" type="text" placeholder="Search by description..." class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm h-11 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <div>
+                                    <div id="type-filter-buttons" class="flex w-full rounded-md bg-gray-200 dark:bg-gray-700 p-1">
+                                        <button data-filter="all" class="filter-btn-active w-full px-3 text-sm font-semibold rounded-md">All</button>
+                                        <button data-filter="Income" class="w-full px-3 text-sm font-semibold rounded-md">Income</button>
+                                        <button data-filter="Expense" class="w-full px-3 text-sm font-semibold rounded-md">Expense</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +167,7 @@
         </main>
     </div>
 
-    <button id="fab" class="lg:hidden fixed bottom-6 right-6 bg-amber-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-transform hover:scale-110">
+    <button id="fab" class="lg:hidden fixed bottom-6 right-6 bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
@@ -156,6 +176,28 @@
     <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
         <section id="mobile-form-container" class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-11/12 max-w-lg mx-auto max-h-[90vh] overflow-y-auto p-6">
         </section>
+    </div>
+    <!-- Password modal -->
+    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Enter password</h3>
+            <input id="password-input" type="password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Password" />
+            <div class="flex justify-end gap-2">
+                <button id="password-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="password-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
+            <div id="confirm-text" class="text-sm text-gray-700 dark:text-gray-200 mb-3">Are you sure?</div>
+            <div class="flex justify-end gap-2">
+                <button id="confirm-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="confirm-ok" class="px-3 py-1 rounded bg-red-600 dark:bg-red-500 text-white">Delete</button>
+            </div>
+        </div>
     </div>
     
     <template id="form-template">
@@ -168,7 +210,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     </div>
-                    <input type="date" id="date" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
+                    <input type="date" id="date" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
             </div>
             <div>
@@ -177,7 +219,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
                     </div>
-                    <input type="text" id="description" placeholder="e.g., Lunch" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
+                    <input type="text" id="description" placeholder="e.g., Lunch" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
             </div>
             <div>
@@ -186,7 +228,7 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span class="text-gray-500 sm:text-sm">Rp</span>
                     </div>
-                    <input type="number" id="amount" placeholder="25000" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500" required>
+                    <input type="text" inputmode="numeric" id="amount" placeholder="25.000" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -196,7 +238,7 @@
                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" /></svg>
                         </div>
-                        <select id="type" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"><option>Expense</option><option>Income</option></select>
+                        <select id="type" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><option>Expense</option><option>Income</option></select>
                     </div>
                 </div>
                 <div>
@@ -205,7 +247,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
                         </div>
-                        <select id="category" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"></select>
+                        <select id="category" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></select>
                     </div>
                 </div>
             </div>
@@ -215,19 +257,55 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 21z" /></svg>
                     </div>
-                    <select id="account" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"></select>
+                    <select id="account" class="block w-full pl-12 pr-3 py-2.5 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></select>
                 </div>
             </div>
             <div class="flex flex-col space-y-2 pt-4">
-                <button type="submit" id="submit-btn" class="w-full bg-amber-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 dark:focus:ring-offset-gray-800 transition">Save</button>
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition">Save</button>
                 <button type="button" id="cancel-edit-btn" class="w-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-2.5 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 dark:focus:ring-offset-gray-800 transition hidden">Cancel</button>
+            </div>
+            <div class="mt-3 space-y-3">
+                <div class="grid grid-cols-1 gap-2">
+                    <button type="button" class="toggle-budget-editor w-full bg-gray-100 dark:bg-gray-700 text-base py-2.5 rounded-md">Manage Budgets</button>
+                    <button type="button" class="manage-categories-toggle w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-base py-2.5 rounded-md">Manage Categories</button>
+                </div>
+
+                <div class="budget-editor mt-3 hidden space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Set monthly budgets for Expense categories.</p>
+                    <div class="budget-fields grid grid-cols-1 gap-2"></div>
+                    <div class="flex gap-2 pt-2">
+                        <button type="button" class="save-budgets-btn flex-1 bg-blue-600 text-white py-2 rounded-md">Save Budgets</button>
+                        <button type="button" class="reset-budgets-btn flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2 rounded-md">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Manage Categories panel -->
+                <div class="categories-panel mt-3 hidden p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+                    <h4 class="text-base font-semibold text-gray-800 dark:text-gray-200 mb-3">Manage Categories</h4>
+                    <div class="space-y-4">
+                        <div class="w-full">
+                            <ul class="categories-list divide-y divide-gray-100 dark:divide-gray-700"></ul>
+                        </div>
+                        <div class="pt-2">
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input class="new-category-name w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm" type="text" placeholder="New category name" />
+                                <select class="new-category-type bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm w-40">
+                                    <option value="Expense">Expense</option>
+                                    <option value="Income">Income</option>
+                                </select>
+                                <button class="add-category-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">Add</button>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">New categories will appear in the list above. Income items are shown first, then Expense items.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </template>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCrYUkmMu-KD1e8Mf2-nKsu251SGHCqZKM",
@@ -240,7 +318,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const transactionsCol = collection(db, 'transactions');
+    const transactionsCol = collection(db, 'transactions');
+    const budgetsDoc = doc(db, 'budgets', 'user_budgets');
+    const categoriesDoc = doc(db, 'categories', 'user_categories');
 
         document.addEventListener('DOMContentLoaded', () => {
             const monthFilter = document.getElementById('month-filter');
@@ -268,15 +348,280 @@
             let expenseChart;
             let visibilityState = { income: false, balance: false };
             let typeFilter = 'all';
+            let budgets = {};
+            let budgetsUnsub = null;
 
-            const categories = { 
+            let categories = { 
                 Income: ['Salary', 'Other Income'], 
                 Expense: ['Food & Drink', 'Transportation', 'Household Needs', 'Entertainment', 'Bills', 'Sports', 'Fashion', 'Other'] 
+            };
+
+            // helper: per-month budget key in localStorage
+            const getBudgetsDocRef = (monthStr) => doc(db, 'budgets', monthStr);
+
+            const loadBudgetsForMonth = (monthStr) => {
+                const month = monthStr || monthFilter.value || (new Date()).toISOString().substring(0,7);
+                // unsubscribe previous listener
+                if (budgetsUnsub) { try { budgetsUnsub(); } catch (e) {} budgetsUnsub = null; }
+                const ref = getBudgetsDocRef(month);
+                budgetsUnsub = onSnapshot(ref, (snap) => {
+                    budgets = snap.exists() ? snap.data() : {};
+                    categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                }, (err) => {
+                    console.error('Error loading budgets: ', err);
+                    // fallback to empty budgets
+                    budgets = {};
+                    categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                });
+            };
+
+            // --- Category management UI (single column list: Income then Expense) ---
+            const getAllCategoriesOrdered = () => {
+                return [...(categories.Income || []), ...(categories.Expense || [])];
+            };
+
+            const renderCategoriesPanel = () => {
+                const panels = document.querySelectorAll('.categories-panel');
+                if (!panels || panels.length === 0) return;
+                // Build a single markup array and populate each panel's list so both desktop and mobile show same content
+                const items = [];
+                ['Income', 'Expense'].forEach(type => {
+                    (categories[type] || []).forEach((cat, idx) => {
+                        items.push({ type, cat, idx });
+                    });
+                });
+
+                panels.forEach(panel => {
+                    const list = panel.querySelector('.categories-list');
+                    if (!list) return;
+                    list.innerHTML = '';
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2';
+                        li.dataset.type = item.type; li.dataset.idx = item.idx;
+                        li.innerHTML = `
+                            <div class="w-full">
+                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">${item.cat}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${item.type}</div>
+                            </div>
+                            <div class="mt-2 sm:mt-0 sm:ml-4 flex gap-2">
+                                <button class="edit-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">Edit</button>
+                                <button class="del-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-red-600">Delete</button>
+                            </div>
+                        `;
+                        list.appendChild(li);
+                    });
+                });
+            };
+
+            const openCategoriesPanel = () => {
+                const panel = document.querySelector('.categories-panel');
+                if (!panel) return;
+                panel.classList.remove('hidden');
+                renderCategoriesPanel();
+            };
+
+            const closeCategoriesPanel = () => {
+                const panel = document.querySelector('.categories-panel');
+                if (!panel) return;
+                panel.classList.add('hidden');
+            };
+
+            // wire toggles
+            const wireCategoryToggles = () => {
+                const saveCategories = async () => {
+                    try {
+                        await setDoc(categoriesDoc, categories);
+                    } catch (err) {
+                        console.error('Failed to save categories: ', err);
+                        alert('Failed to save categories to cloud.');
+                    }
+                };
+                // Attach manage-categories-toggle to every form instance (desktop + mobile)
+                document.querySelectorAll('.manage-categories-toggle').forEach(btn => {
+                    btn.removeEventListener('click', btn.__manageCatHandler);
+                    btn.__manageCatHandler = (e) => {
+                        const form = btn.closest('form');
+                        const panel = form ? form.querySelector('.categories-panel') : document.querySelector('.categories-panel');
+                        if (!panel) return;
+                        const isHidden = panel.classList.contains('hidden');
+                        // hide all budget editors across forms
+                        document.querySelectorAll('.budget-editor').forEach(be => be.classList.add('hidden'));
+                        // toggle this panel
+                        if (isHidden) {
+                            panel.classList.remove('hidden');
+                            renderCategoriesPanel();
+                        } else {
+                            panel.classList.add('hidden');
+                        }
+                    };
+                    btn.addEventListener('click', btn.__manageCatHandler);
+                });
+
+                // delegate edit/delete (works across panels)
+                document.body.removeEventListener('click', window.__catClickHandler);
+                window.__catClickHandler = async (e) => {
+                    const editBtn = e.target.closest('.edit-cat');
+                    const delBtn = e.target.closest('.del-cat');
+                    // prevent outside-click handler from running when we handle edit/delete
+                    if (editBtn || delBtn) {
+                        e.stopPropagation();
+                    }
+                    if (delBtn) {
+                        const li = delBtn.closest('li');
+                        if (!li) return;
+                        const type = li.dataset.type;
+                        // get current name from DOM to avoid stale index
+                        const nameEl = li.querySelector('.text-sm.font-medium');
+                        const currentName = nameEl ? nameEl.textContent.trim() : null;
+                        const idx = currentName ? categories[type].indexOf(currentName) : parseInt(li.dataset.idx || '-1', 10);
+                        if (idx === -1 || !currentName) {
+                            // fallback: search across both types
+                            const altType = type === 'Income' ? 'Expense' : 'Income';
+                            const altIdx = currentName ? categories[altType].indexOf(currentName) : -1;
+                            if (altIdx !== -1) {
+                                try {
+                                    const ok = await showConfirmModal(`Delete category "${categories[altType][altIdx]}"?`);
+                                    if (!ok) return;
+                                } catch (e) { return; }
+                                categories[altType].splice(altIdx, 1);
+                                renderCategoriesPanel();
+                                return;
+                            }
+                            return;
+                        }
+                        try {
+                            const ok = await showConfirmModal(`Delete category "${categories[type][idx]}"?`);
+                            if (!ok) return;
+                        } catch (e) { return; }
+                        categories[type].splice(idx, 1);
+                        renderCategoriesPanel();
+                        saveCategories();
+                    } else if (editBtn) {
+                        const li = editBtn.closest('li');
+                        if (!li) return;
+                        const type = li.dataset.type;
+                        const nameEl = li.querySelector('.text-sm.font-medium');
+                        const oldName = nameEl ? nameEl.textContent.trim() : (categories[type][parseInt(li.dataset.idx || '0', 10)] || '');
+                        // replace li content with edit form (buttons below input for mobile)
+                        li.innerHTML = `
+                            <div class="w-full flex flex-col gap-2">
+                                <input class="edit-input w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm" />
+                                <div class="flex gap-2">
+                                    <select class="edit-type bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm w-36">
+                                        <option value="Expense">Expense</option>
+                                        <option value="Income">Income</option>
+                                    </select>
+                                    <button class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded-md text-sm">Save</button>
+                                    <button class="cancel-edit-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-sm">Cancel</button>
+                                </div>
+                            </div>
+                        `;
+                        // set input/select values safely (avoid HTML attribute escaping issues)
+                        const inputEl = li.querySelector('.edit-input');
+                        const selectEl = li.querySelector('.edit-type');
+                        if (inputEl) inputEl.value = oldName;
+                        if (selectEl) selectEl.value = type;
+                        // wire buttons using onclick to avoid duplicate listeners
+                        const cancelBtn = li.querySelector('.cancel-edit-btn');
+                        const saveBtn = li.querySelector('.save-edit-btn');
+                        if (cancelBtn) cancelBtn.onclick = () => renderCategoriesPanel();
+                        if (saveBtn) saveBtn.onclick = () => {
+                            const input = li.querySelector('.edit-input');
+                            const newType = li.querySelector('.edit-type').value;
+                            const newName = input ? input.value.trim() : '';
+                            if (!newName) return alert('Name cannot be empty');
+                            // case-insensitive duplicate check
+                            const nameExists = (arr, name) => arr.some(a => a.toLowerCase() === name.toLowerCase());
+                            if ((nameExists(categories.Income, newName) || nameExists(categories.Expense, newName)) && newName.toLowerCase() !== oldName.toLowerCase()) return alert('Category already exists');
+                            // find current index again
+                            const currentIdx = categories[type].indexOf(oldName);
+                            if (currentIdx !== -1) categories[type].splice(currentIdx, 1);
+                            categories[newType].push(newName);
+                            renderCategoriesPanel();
+                            saveCategories();
+                        };
+                    }
+                };
+                document.body.addEventListener('click', window.__catClickHandler);
+
+                // add category buttons: attach to each form's add button
+                document.querySelectorAll('.add-category-btn').forEach(addBtn => {
+                    addBtn.removeEventListener('click', addBtn.__addHandler);
+                    addBtn.__addHandler = (e) => {
+                        const form = addBtn.closest('form');
+                        const nameInput = form ? form.querySelector('.new-category-name') : document.querySelector('.new-category-name');
+                        const typeSelect = form ? form.querySelector('.new-category-type') : document.querySelector('.new-category-type');
+                        const name = nameInput.value.trim();
+                        const type = typeSelect.value;
+                        if (!name) return alert('Enter category name');
+                        if (categories.Income.includes(name) || categories.Expense.includes(name)) return alert('Category already exists');
+                        categories[type].push(name);
+                        nameInput.value = '';
+                        renderCategoriesPanel();
+                        saveCategories();
+                    };
+                    addBtn.addEventListener('click', addBtn.__addHandler);
+                });
             };
             const accounts = ['Cash', 'Bank', 'E-Wallet', 'Credit Card'];
 
             const formatCurrency = (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
             const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            // --- Number formatting helpers for amount input (thousand separators while typing) ---
+            const formatNumberInput = (str) => {
+                if (str == null) return '';
+                // remove non-digits
+                const onlyDigits = String(str).replace(/[^0-9]/g, '');
+                if (onlyDigits === '') return '';
+                return onlyDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            };
+
+            const parseNumberFromFormatted = (str) => {
+                if (!str) return 0;
+                const digits = String(str).replace(/[^0-9\-]/g, '');
+                return digits === '' ? 0 : parseFloat(digits);
+            };
+
+            // Modal helpers
+            const showPasswordModal = (placeholderText) => {
+                return new Promise((resolve, reject) => {
+                    const pm = document.getElementById('password-modal');
+                    const input = document.getElementById('password-input');
+                    const cancel = document.getElementById('password-cancel');
+                    const submit = document.getElementById('password-submit');
+                    if (!pm || !input || !cancel || !submit) return reject();
+                    input.value = '';
+                    input.placeholder = placeholderText || 'Password';
+                    pm.classList.remove('hidden');
+                    const cleanup = () => { pm.classList.add('hidden'); cancel.onclick = null; submit.onclick = null; };
+                    cancel.onclick = () => { cleanup(); reject(); };
+                    submit.onclick = () => { const v = input.value; cleanup(); resolve(v); };
+                    input.focus();
+                });
+            };
+
+            const showConfirmModal = (text) => {
+                return new Promise((resolve, reject) => {
+                    const cm = document.getElementById('confirm-modal');
+                    const ctext = document.getElementById('confirm-text');
+                    const cancel = document.getElementById('confirm-cancel');
+                    const ok = document.getElementById('confirm-ok');
+                    if (!cm || !ctext || !cancel || !ok) return reject();
+                    ctext.textContent = text || 'Are you sure?';
+                    cm.classList.remove('hidden');
+                    const cleanup = () => { cm.classList.add('hidden'); cancel.onclick = null; ok.onclick = null; };
+                    cancel.onclick = () => { cleanup(); reject(); };
+                    ok.onclick = () => { cleanup(); resolve(true); };
+                });
+            };
 
             const applyTheme = (theme) => {
                 if (theme === 'dark') {
@@ -313,15 +658,16 @@
                     localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
                     updateVisibilityUI();
                 } else {
-                    const password = prompt("Enter password to show amounts:");
-                    if (password === "0124") {
-                        visibilityState.income = true;
-                        visibilityState.balance = true;
-                        localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
-                        updateVisibilityUI();
-                    } else if (password !== null) {
-                        alert("Incorrect password.");
-                    }
+                    showPasswordModal('Enter password to show amounts:').then(pw => {
+                        if (pw === '0124') {
+                            visibilityState.income = true;
+                            visibilityState.balance = true;
+                            localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
+                            updateVisibilityUI();
+                        } else {
+                            alert('Incorrect password.');
+                        }
+                    }).catch(() => {});
                 }
             };
 
@@ -382,12 +728,24 @@
 
                 const isMobile = window.innerWidth < 1024;
                 const container = isMobile ? mobileFormContainer : desktopFormContainer;
+                // require password for editing Income
+                if (transaction.type === 'Income') {
+                    showPasswordModal('Enter password to edit Income:').then(pw => {
+                        if (pw !== '0124') return alert('Incorrect password.');
+                        proceedEdit();
+                    }).catch(() => {});
+                } else {
+                    proceedEdit();
+                }
+
+                function proceedEdit() {
                 const form = container.querySelector('form');
                 
                 form.querySelector('#transaction-id').value = transaction.id;
                 form.querySelector('#date').value = transaction.date;
                 form.querySelector('#description').value = transaction.description;
-                form.querySelector('#amount').value = transaction.amount;
+                // populate formatted amount (thousand separators)
+                form.querySelector('#amount').value = formatNumberInput(String(transaction.amount));
                 form.querySelector('#type').value = transaction.type;
                 updateCategoryOptions(form);
                 form.querySelector('#category').value = transaction.category;
@@ -396,16 +754,22 @@
                 container.querySelector('#submit-btn').textContent = 'Update Transaction';
                 container.querySelector('#cancel-edit-btn').classList.remove('hidden');
                 
-                if (isMobile) {
-                    modal.classList.remove('hidden');
-                } else {
-                    container.scrollIntoView({ behavior: 'smooth' });
+                    if (isMobile) {
+                        modal.classList.remove('hidden');
+                    } else {
+                        container.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             };
 
             window.deleteTransaction = async (id) => {
-                if (confirm('Are you sure you want to delete this transaction?')) {
-                    await deleteDoc(doc(db, 'transactions', id));
+                try {
+                    const ok = await showConfirmModal('Are you sure you want to delete this transaction?');
+                    if (ok) {
+                        await deleteDoc(doc(db, 'transactions', id));
+                    }
+                } catch (e) {
+                    // modal cancelled
                 }
             };
 
@@ -445,28 +809,20 @@
                     desktopTbody.appendChild(row);
 
                     const card = document.createElement('div');
-                    card.className = `p-4 rounded-lg shadow-md ${t.type === 'Income' ? 'bg-green-50/50 dark:bg-green-900/20' : 'bg-red-50/50 dark:bg-red-900/20'}`;
+                    card.className = `p-2 rounded-lg shadow-sm ${t.type === 'Income' ? 'bg-green-50/50 dark:bg-green-900/20' : 'bg-red-50/50 dark:bg-red-900/20'}`;
                     card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-bold text-gray-900 dark:text-gray-100">${t.description}</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(t.date)}</p>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="font-medium text-sm truncate text-gray-900 dark:text-gray-100">${t.description}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${formatDate(t.date)} • ${t.category}</div>
                             </div>
-                            <p class="text-lg font-bold whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${amountDisplay}</p>
-                        </div>
-                        <div class="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                            <div class="flex justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Category:</span>
-                                <span>${t.category}</span>
+                            <div class="text-right">
+                                <div class="font-semibold text-base whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${amountDisplay}</div>
+                                <div class="mt-1 flex items-center justify-end gap-2">
+                                    <button onclick="startEditTransaction('${t.id}')" class="text-xs text-indigo-600 dark:text-indigo-400">Edit</button>
+                                    <button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-600 dark:text-red-400">Delete</button>
+                                </div>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Account:</span>
-                                <span>${t.account}</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 text-right space-x-4">
-                            <button onclick="startEditTransaction('${t.id}')" class="text-indigo-600 dark:text-indigo-400 font-semibold">Edit</button>
-                            <button onclick="deleteTransaction('${t.id}')" class="text-red-600 dark:text-red-400 font-semibold">Delete</button>
                         </div>
                     `;
                     mobileCardList.appendChild(card);
@@ -488,14 +844,23 @@
                 document.getElementById('net-balance').textContent = visibilityState.balance ? formatCurrency(netBalance) : '***';
                 
                 renderExpenseChart(monthFilteredTransactions);
+                renderBudgetStatus(monthFilteredTransactions);
 
-                let finalFilteredTransactions = monthFilteredTransactions;
+                // if trend view active, update trend chart
+                const trendVisible = !document.getElementById('trend-canvas-wrapper').classList.contains('hidden');
+                if (trendVisible) {
+                    renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10));
+                }
+
+                let finalFilteredTransactions;
                 const timePeriod = timePeriodFilter.value;
                 const now = new Date();
-                if(timePeriod === 'week') {
+                if(timePeriod === 'month') {
+                    finalFilteredTransactions = monthFilteredTransactions;
+                } else if(timePeriod === 'week') {
                     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
                     startOfWeek.setHours(0,0,0,0);
-                    finalFilteredTransactions = finalFilteredTransactions.filter(t => new Date(t.date) >= startOfWeek);
+                    finalFilteredTransactions = allTransactions.filter(t => new Date(t.date) >= startOfWeek);
                 } else if (timePeriod === 'year') {
                     const yearStr = now.getFullYear().toString();
                     finalFilteredTransactions = allTransactions.filter(t => t.date.startsWith(yearStr));
@@ -503,6 +868,12 @@
                 
                 if (typeFilter !== 'all') {
                     finalFilteredTransactions = finalFilteredTransactions.filter(t => t.type === typeFilter);
+                }
+                // apply search filter (description) - works on mobile and desktop
+                const searchInput = document.getElementById('search-input');
+                if (searchInput && searchInput.value.trim() !== '') {
+                    const q = searchInput.value.trim().toLowerCase();
+                    finalFilteredTransactions = finalFilteredTransactions.filter(t => (t.description || '').toLowerCase().includes(q));
                 }
                 renderTable(finalFilteredTransactions);
             };
@@ -532,6 +903,16 @@
                     return;
                 }
                 
+                // adjust wrapper height based on number of non-zero categories so chart scales nicely
+                const distWrap = document.getElementById('distribution-canvas-wrapper');
+                const nonZeroCount = expenseData.filter(v => v > 0).length || labels.length;
+                // determine height: base 220px, add 24px per category up to a max
+                const base = 220;
+                const per = 22;
+                const max = 520;
+                const desired = Math.min(max, base + (nonZeroCount - 1) * per);
+                if (distWrap) distWrap.style.height = desired + 'px';
+
                 canvas.classList.remove('hidden');
                 noDataMessage.classList.add('hidden');
 
@@ -577,6 +958,89 @@
                 });
             };
 
+            // Trend chart: Income vs Expense over last N months
+            let trendChart = null;
+            const getMonthsArray = (count) => {
+                const months = [];
+                const now = new Date();
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    months.push(d.toISOString().substring(0,7));
+                }
+                return months;
+            };
+
+            const computeMonthlyTotals = (transactions, months) => {
+                const incomeTotals = months.map(m => 0);
+                const expenseTotals = months.map(m => 0);
+                transactions.forEach(t => {
+                    const m = t.date.substring(0,7);
+                    const idx = months.indexOf(m);
+                    if (idx === -1) return;
+                    if (t.type === 'Income') incomeTotals[idx] += t.amount;
+                    else if (t.type === 'Expense') expenseTotals[idx] += t.amount;
+                });
+                return { incomeTotals, expenseTotals };
+            };
+
+            const renderTrendChart = (allTx, monthsCount) => {
+                const months = getMonthsArray(monthsCount);
+                const { incomeTotals, expenseTotals } = computeMonthlyTotals(allTx, months);
+                const labels = months.map(m => {
+                    const [y, mm] = m.split('-');
+                    const d = new Date(y, parseInt(mm,10)-1);
+                    return d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                });
+
+                const ctx2 = document.getElementById('trend-chart').getContext('2d');
+                if (trendChart) { trendChart.destroy(); trendChart = null; }
+                trendChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'Income', data: incomeTotals, borderColor: 'rgba(34,197,94,0.9)', backgroundColor: 'rgba(34,197,94,0.15)', tension: 0.2 },
+                            { label: 'Expense', data: expenseTotals, borderColor: 'rgba(239,68,68,0.9)', backgroundColor: 'rgba(239,68,68,0.15)', tension: 0.2 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { callback: val => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val) } }
+                        }
+                    }
+                });
+            };
+
+            // Toggle UI for distribution <-> trend
+            const btnDistribution = document.getElementById('btn-distribution');
+            const btnTrend = document.getElementById('btn-trend');
+            const trendControls = document.getElementById('trend-controls');
+            const trendRange = document.getElementById('trend-range');
+            btnDistribution.addEventListener('click', () => {
+                // show distribution wrapper, hide trend wrapper
+                const distWrap = document.getElementById('distribution-canvas-wrapper');
+                const trendWrap = document.getElementById('trend-canvas-wrapper');
+                if (distWrap) distWrap.classList.remove('hidden');
+                if (trendWrap) trendWrap.classList.add('hidden');
+                trendControls.classList.add('hidden');
+                btnDistribution.classList.add('bg-blue-600'); btnDistribution.classList.remove('bg-gray-100');
+                btnTrend.classList.remove('bg-blue-600'); btnTrend.classList.add('bg-gray-100');
+            });
+            btnTrend.addEventListener('click', () => {
+                // show trend wrapper, hide distribution wrapper
+                const distWrap = document.getElementById('distribution-canvas-wrapper');
+                const trendWrap = document.getElementById('trend-canvas-wrapper');
+                if (distWrap) distWrap.classList.add('hidden');
+                if (trendWrap) trendWrap.classList.remove('hidden');
+                trendControls.classList.remove('hidden');
+                btnTrend.classList.add('bg-blue-600'); btnTrend.classList.remove('bg-gray-100');
+                btnDistribution.classList.remove('bg-blue-600'); btnDistribution.classList.add('bg-gray-100');
+                renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10));
+            });
+            trendRange.addEventListener('change', () => renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10)));
+
             const handleFormSubmit = async (e) => {
                 e.preventDefault();
                 const currentForm = e.target;
@@ -584,10 +1048,13 @@
                 currentSubmitBtn.disabled = true;
 
                 const id = currentForm.querySelector('#transaction-id').value;
+                // parse formatted amount (e.g., "25.000") into numeric
+                const rawAmount = currentForm.querySelector('#amount').value;
+                const numericAmount = parseNumberFromFormatted(rawAmount);
                 const transactionData = {
                     date: currentForm.querySelector('#date').value,
                     description: currentForm.querySelector('#description').value,
-                    amount: parseFloat(currentForm.querySelector('#amount').value),
+                    amount: numericAmount,
                     type: currentForm.querySelector('#type').value,
                     category: currentForm.querySelector('#category').value,
                     account: currentForm.querySelector('#account').value
@@ -625,44 +1092,184 @@
             };
             
             const exportToExcel = () => {
-                const password = prompt("Enter password to export data:");
-                if (password === "0124") {
-                    const selectedMonth = monthFilter.value;
-                    const selectedMonthName = monthFilter.options[monthFilter.selectedIndex].text;
-                    const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                showPasswordModal('Enter password to export data:').then(password => {
+                    if (password === '0124') {
+                        const selectedMonth = monthFilter.value;
+                        const selectedMonthName = monthFilter.options[monthFilter.selectedIndex].text;
+                        const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
 
-                    if (filteredTransactions.length === 0) {
-                        alert('No data to export for this month.');
-                        return;
+                        if (filteredTransactions.length === 0) {
+                            alert('No data to export for this month.');
+                            return;
+                        }
+
+                        const dataForExport = filteredTransactions.map(t => ({
+                            Date: formatDate(t.date),
+                            Description: t.description,
+                            Category: t.category,
+                            Type: t.type,
+                            Account: t.account,
+                            Amount: t.amount
+                        }));
+
+                        const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
+                        const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
+
+                        const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+                        
+                        XLSX.utils.sheet_add_aoa(worksheet, [
+                            [],
+                            ["SUMMARY"],
+                            ["Total Income", totalIncome],
+                            ["Total Expense", totalExpense],
+                            ["Balance", totalIncome - totalExpense]
+                        ], { origin: -1 });
+
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
+                        XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
+                    } else {
+                        alert('Incorrect password.');
                     }
+                }).catch(() => {});
+            };
 
-                    const dataForExport = filteredTransactions.map(t => ({
-                        Date: formatDate(t.date),
-                        Description: t.description,
-                        Category: t.category,
-                        Type: t.type,
-                        Account: t.account,
-                        Amount: t.amount
-                    }));
+            const renderBudgetEditorForContainer = (container) => {
+                const toggleBtn = container.querySelector('.toggle-budget-editor');
+                const editor = container.querySelector('.budget-editor');
+                const fields = container.querySelector('.budget-fields');
+                const saveBtn = container.querySelector('.save-budgets-btn');
+                const resetBtn = container.querySelector('.reset-budgets-btn');
 
-                    const totalIncome = filteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
-                    const totalExpense = filteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
+                const buildFields = () => {
+                    fields.innerHTML = '';
+                    categories.Expense.forEach(cat => {
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center gap-2';
+                        // show empty string if budget is zero so user sees blank input
+                        const displayVal = (budgets[cat] || 0) === 0 ? '' : formatNumberInput(String(budgets[cat] || 0));
+                        row.innerHTML = `
+                            <label class="w-1/2 text-sm text-gray-700 dark:text-gray-300">${cat}</label>
+                            <input type="text" inputmode="numeric" data-cat="${cat}" value="${displayVal}" class="w-1/2 block bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm budget-input" />
+                        `;
+                        fields.appendChild(row);
+                    });
+                };
 
-                    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
-                    
-                    XLSX.utils.sheet_add_aoa(worksheet, [
-                        [],
-                        ["SUMMARY"],
-                        ["Total Income", totalIncome],
-                        ["Total Expense", totalExpense],
-                        ["Balance", totalIncome - totalExpense]
-                    ], { origin: -1 });
+                if (!toggleBtn) return;
+                // attach per-form toggle and ensure mutual hide with categories panel
+                toggleBtn.removeEventListener('click', toggleBtn.__toggleHandler);
+                toggleBtn.__toggleHandler = () => {
+                    const form = toggleBtn.closest('form');
+                    const panel = form ? form.querySelector('.categories-panel') : null;
+                    const isHidden = editor.classList.contains('hidden');
+                    // hide all category panels first
+                    document.querySelectorAll('.categories-panel').forEach(p => p.classList.add('hidden'));
+                    // toggle this editor
+                    if (isHidden) {
+                        editor.classList.remove('hidden');
+                        buildFields();
+                    } else {
+                        editor.classList.add('hidden');
+                    }
+                    // also ensure other forms' editors are hidden
+                    document.querySelectorAll('.budget-editor').forEach(be => { if (be !== editor) be.classList.add('hidden'); });
+                };
+                toggleBtn.addEventListener('click', toggleBtn.__toggleHandler);
 
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
-                    XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
-                } else if (password !== null) {
-                    alert("Incorrect password.");
+                // ensure we don't attach duplicate listeners when re-rendering
+                saveBtn.onclick = null;
+                saveBtn.onclick = async () => {
+                    const newBudgets = { ...budgets };
+                    fields.querySelectorAll('input[data-cat]').forEach(input => {
+                        const c = input.dataset.cat;
+                        const val = input.value || '';
+                        newBudgets[c] = parseNumberFromFormatted(val) || 0;
+                    });
+                    try {
+                        const month = monthFilter.value || (new Date()).toISOString().substring(0,7);
+                        await setDoc(getBudgetsDocRef(month), newBudgets);
+                        budgets = newBudgets;
+                        alert('Budgets saved successfully.');
+                        renderBudgetEditorForContainer(container);
+                        renderDashboard();
+                    } catch (e) {
+                        console.error("Error saving budgets: ", e);
+                        alert('Failed to save budgets.');
+                    }
+                };
+
+                resetBtn.onclick = null;
+                resetBtn.onclick = async () => {
+                    try {
+                        const ok = await showConfirmModal('Reset all budgets to 0?');
+                        if (!ok) return;
+                    } catch (e) { return; }
+                    const newBudgets = {};
+                    categories.Expense.forEach(cat => newBudgets[cat] = 0);
+                    try {
+                        const month = monthFilter.value || (new Date()).toISOString().substring(0,7);
+                        await setDoc(getBudgetsDocRef(month), newBudgets);
+                        budgets = newBudgets;
+                        alert('Budgets have been reset.');
+                        renderBudgetEditorForContainer(container);
+                        renderDashboard();
+                    } catch (e) {
+                        console.error('Error resetting budgets: ', e);
+                        alert('Failed to reset budgets.');
+                    }
+                };
+
+                buildFields();
+                // attach formatting behavior to budget inputs
+                fields.querySelectorAll('.budget-input').forEach(inp => {
+                    inp.addEventListener('input', () => { inp.value = formatNumberInput(inp.value); try { inp.selectionStart = inp.selectionEnd = inp.value.length; } catch(e){} });
+                    inp.addEventListener('blur', () => { inp.value = formatNumberInput(inp.value); });
+                });
+            };
+            
+            const renderBudgetStatus = (filteredTransactionsArg) => {
+                const container = document.getElementById('budget-status');
+                if (!container) return;
+                
+                const spentByCategory = {};
+                categories.Expense.forEach(cat => spentByCategory[cat] = 0);
+                filteredTransactionsArg.filter(t => t.type === 'Expense').forEach(t => {
+                    spentByCategory[t.category] = (spentByCategory[t.category] || 0) + t.amount;
+                });
+                container.innerHTML = '';
+                let visibleCount = 0;
+                categories.Expense.forEach(cat => {
+                    const spent = spentByCategory[cat] || 0;
+                    const budget = budgets[cat] || 0;
+                    if (!budget || budget === 0) return;
+                    const remaining = budget - spent;
+                    const over = budget > 0 && spent > budget;
+                    const percentUsed = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : (spent > 0 ? 100 : 0);
+                    const card = document.createElement('div');
+                    // compact style: small text, concise layout (suitable for mobile)
+                    card.className = 'p-2 rounded-lg border text-sm ' + (over ? 'border-red-300 bg-red-50 dark:bg-red-900/30' : 'border-gray-200 bg-white dark:bg-gray-800');
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="font-semibold truncate ${over ? 'text-red-700 dark:text-red-200' : 'text-gray-700 dark:text-gray-200'}">${cat}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">B ${formatCurrency(budget)} • R ${formatCurrency(remaining)}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold ${over ? 'text-red-600 dark:text-red-300' : 'text-gray-800 dark:text-gray-100'}">${formatCurrency(spent)}</div>
+                                <div class="text-xs ${over ? 'text-red-600' : 'text-gray-500'}">${budget === 0 ? 'No budget' : (over ? `Over ${formatCurrency(Math.abs(remaining))}` : `${percentUsed}%`)}</div>
+                            </div>
+                        </div>
+                        <div class="w-full mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+                            <div style="width: ${percentUsed}%" class="h-1 ${over ? 'bg-red-500' : 'bg-blue-500'}"></div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                    visibleCount++;
+                });
+
+                if (visibleCount === 0) {
+                    container.innerHTML = '<div class="p-4 text-center text-gray-500 dark:text-gray-400">No budgets set. Use Manage Budgets to add budgets for categories.</div>';
                 }
             };
 
@@ -677,6 +1284,23 @@
 
             const desktopForm = desktopFormContainer.querySelector('form');
             const mobileForm = mobileFormContainer.querySelector('form');
+
+            // attach amount formatting listeners for desktop & mobile forms
+            const attachAmountFormatting = (form) => {
+                if (!form) return;
+                const amt = form.querySelector('#amount');
+                if (!amt) return;
+                amt.addEventListener('input', () => {
+                    const newVal = formatNumberInput(amt.value);
+                    amt.value = newVal;
+                    try { amt.selectionStart = amt.selectionEnd = amt.value.length; } catch (e) {}
+                });
+                amt.addEventListener('blur', () => { amt.value = formatNumberInput(amt.value); });
+            };
+
+            attachAmountFormatting(desktopForm);
+            attachAmountFormatting(mobileForm);
+
             desktopForm.addEventListener('submit', handleFormSubmit);
             mobileForm.addEventListener('submit', handleFormSubmit);
 
@@ -695,9 +1319,11 @@
                     resetFormState();
                 }
             });
-            monthFilter.addEventListener('change', renderDashboard);
+            monthFilter.addEventListener('change', () => { loadBudgetsForMonth(); renderDashboard(); });
             timePeriodFilter.addEventListener('change', renderDashboard);
             exportBtn.addEventListener('click', exportToExcel);
+            const searchInputEl = document.getElementById('search-input');
+            if (searchInputEl) searchInputEl.addEventListener('input', renderDashboard);
 
             const init = () => {
                 const savedTheme = localStorage.getItem('theme');
@@ -714,6 +1340,33 @@
 
                 populateAccountOptions(desktopFormContainer, accounts);
                 populateAccountOptions(mobileFormContainer, accounts);
+                
+                // load budgets for the currently selected month from localStorage
+                loadBudgetsForMonth();
+
+                // listen for categories from Firestore (real-time)
+                onSnapshot(categoriesDoc, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        // normalize shape
+                        categories = {
+                            Income: Array.isArray(data.Income) ? data.Income.slice() : (data.Income ? Object.values(data.Income) : ['Salary','Other Income']),
+                            Expense: Array.isArray(data.Expense) ? data.Expense.slice() : (data.Expense ? Object.values(data.Expense) : ['Food & Drink','Transportation','Household Needs','Entertainment','Bills','Sports','Fashion','Other'])
+                        };
+                    }
+                    else {
+                        // initialize default categories in Firestore if missing
+                        setDoc(categoriesDoc, categories).catch(err => console.error('Failed to initialize categories: ', err));
+                    }
+                    renderCategoriesPanel();
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                }, (err) => {
+                    console.error('Error loading categories: ', err);
+                    renderCategoriesPanel();
+                });
+
                 resetFormState();
                 desktopTbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</td></tr>';
                 mobileCardList.innerHTML = '<div class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</div>';
@@ -727,6 +1380,17 @@
                     const errorMessage = 'Failed to load data. Please check your internet connection.';
                     desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500">${errorMessage}</td></tr>`;
                     mobileCardList.innerHTML = `<div class="text-center py-10 text-red-500">${errorMessage}</div>`;
+                });
+
+                // wire category UI toggles after DOM ready
+                try { wireCategoryToggles(); } catch (e) { /* ignore if not defined */ }
+
+                // close categories panels and budget editors when clicking outside
+                document.addEventListener('click', (e) => {
+                    // if click inside any categories-panel or on any toggle or inside budget-editor or on any budget toggle, ignore
+                    if (e.target.closest('.categories-panel') || e.target.closest('.manage-categories-toggle') || e.target.closest('.budget-editor') || e.target.closest('.toggle-budget-editor')) return;
+                    document.querySelectorAll('.categories-panel').forEach(p => p.classList.add('hidden'));
+                    document.querySelectorAll('.budget-editor').forEach(b => b.classList.add('hidden'));
                 });
             };
 
