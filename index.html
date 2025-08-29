@@ -95,8 +95,9 @@
                     <div class="chart-container">
                         <div class="mb-3 flex flex-col items-center">
                             <div class="inline-flex rounded-md shadow-sm" role="group">
-                                <button id="btn-distribution" class="px-3 py-1 bg-blue-600 text-white rounded-l-md">Distribution</button>
-                                <button id="btn-trend" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-r-md">Trend</button>
+                                <!-- Use same filter style as transaction history: apply/remove `filter-btn-active` -->
+                                <button id="btn-distribution" class="px-3 py-1 text-sm font-semibold rounded-l-md filter-btn-active">Distribution</button>
+                                <button id="btn-trend" class="px-3 py-1 text-sm font-semibold rounded-r-md">Trend</button>
                             </div>
                             <div id="trend-controls" class="hidden mt-2 flex items-center gap-2">
                                 <label class="text-xs text-gray-500 dark:text-gray-400 mr-1">Range:</label>
@@ -1013,33 +1014,40 @@
                 });
             };
 
-            // Toggle UI for distribution <-> trend
+            // Toggle UI for distribution <-> trend using the same filter style as transaction filters
             const btnDistribution = document.getElementById('btn-distribution');
             const btnTrend = document.getElementById('btn-trend');
             const trendControls = document.getElementById('trend-controls');
             const trendRange = document.getElementById('trend-range');
+
+            function setActiveToggle(activeBtn) {
+                if (!btnDistribution || !btnTrend) return;
+                btnDistribution.classList.remove('filter-btn-active');
+                btnTrend.classList.remove('filter-btn-active');
+                activeBtn.classList.add('filter-btn-active');
+            }
+
+            // initialize default state to Distribution active
+            setActiveToggle(btnDistribution);
+
             btnDistribution.addEventListener('click', () => {
-                // show distribution wrapper, hide trend wrapper
                 const distWrap = document.getElementById('distribution-canvas-wrapper');
                 const trendWrap = document.getElementById('trend-canvas-wrapper');
                 if (distWrap) distWrap.classList.remove('hidden');
                 if (trendWrap) trendWrap.classList.add('hidden');
-                trendControls.classList.add('hidden');
-                btnDistribution.classList.add('bg-blue-600'); btnDistribution.classList.remove('bg-gray-100');
-                btnTrend.classList.remove('bg-blue-600'); btnTrend.classList.add('bg-gray-100');
+                if (trendControls) trendControls.classList.add('hidden');
+                setActiveToggle(btnDistribution);
             });
+
             btnTrend.addEventListener('click', () => {
-                // show trend wrapper, hide distribution wrapper
                 const distWrap = document.getElementById('distribution-canvas-wrapper');
                 const trendWrap = document.getElementById('trend-canvas-wrapper');
                 if (distWrap) distWrap.classList.add('hidden');
                 if (trendWrap) trendWrap.classList.remove('hidden');
-                trendControls.classList.remove('hidden');
-                btnTrend.classList.add('bg-blue-600'); btnTrend.classList.remove('bg-gray-100');
-                btnDistribution.classList.remove('bg-blue-600'); btnDistribution.classList.add('bg-gray-100');
-                renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10));
+                if (trendControls) trendControls.classList.remove('hidden');
+                setActiveToggle(btnTrend);
+                try { renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10)); } catch (e) { /* trend renderer not available */ }
             });
-            trendRange.addEventListener('change', () => renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10)));
 
             const handleFormSubmit = async (e) => {
                 e.preventDefault();
