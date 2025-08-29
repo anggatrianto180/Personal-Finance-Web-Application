@@ -875,7 +875,9 @@
                 // if trend view active, update trend chart
                 const trendVisible = !document.getElementById('trend-canvas-wrapper').classList.contains('hidden');
                 if (trendVisible) {
-                    renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10));
+                    const monthFilterEl = document.getElementById('month-filter');
+                    const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                    renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
                 }
 
                 let finalFilteredTransactions;
@@ -986,12 +988,22 @@
 
             // Trend chart: Income vs Expense over last N months
             let trendChart = null;
-            const getMonthsArray = (count) => {
+            // returns array of month keys like '2025-08', ending at optional endMonth (YYYY-MM) or current month
+            const getMonthsArray = (count, endMonth) => {
                 const months = [];
-                const now = new Date();
+                let endDate;
+                if (endMonth && typeof endMonth === 'string' && /^\d{4}-\d{2}$/.test(endMonth)) {
+                    const [y, m] = endMonth.split('-');
+                    endDate = new Date(parseInt(y,10), parseInt(m,10)-1, 1);
+                } else {
+                    endDate = new Date();
+                    endDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+                }
                 for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    months.push(d.toISOString().substring(0,7));
+                    const d = new Date(endDate.getFullYear(), endDate.getMonth() - i, 1);
+                    // Use local year/month to avoid UTC-based toISOString shifting the date to previous month
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                    months.push(key);
                 }
                 return months;
             };
@@ -1009,8 +1021,11 @@
                 return { incomeTotals, expenseTotals };
             };
 
-            const renderTrendChart = (allTx, monthsCount) => {
-                const months = getMonthsArray(monthsCount);
+            const renderTrendChart = (allTx, monthsCount, endMonth) => {
+                // endMonth: optional 'YYYY-MM' string; if not provided, use the current month filter if available
+                const monthFilterEl = document.getElementById('month-filter');
+                const endKey = endMonth || (monthFilterEl ? monthFilterEl.value : undefined);
+                const months = getMonthsArray(monthsCount, endKey);
                 const { incomeTotals, expenseTotals } = computeMonthlyTotals(allTx, months);
                 const labels = months.map(m => {
                     const [y, mm] = m.split('-');
@@ -1097,8 +1112,25 @@
                 if (trendWrap) trendWrap.classList.remove('hidden');
                 if (trendControls) trendControls.classList.remove('hidden');
                 setActiveToggle(btnTrend);
-                try { renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10)); } catch (e) { /* trend renderer not available */ }
+                try { 
+                    const monthFilterEl = document.getElementById('month-filter');
+                    const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                    renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
+                } catch (e) { /* trend renderer not available */ }
             });
+
+            // When the trend range changes (6/12 months), re-render the trend chart if Trend tab is active
+            if (trendRange) {
+                trendRange.addEventListener('change', () => {
+                    try {
+                        const monthFilterEl = document.getElementById('month-filter');
+                        const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                        if (btnTrend && btnTrend.classList.contains('filter-btn-active')) {
+                            renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
+                        }
+                    } catch (e) { /* safe */ }
+                });
+            }
 
             const handleFormSubmit = async (e) => {
                 e.preventDefault();
@@ -1378,7 +1410,17 @@
                     resetFormState();
                 }
             });
-            monthFilter.addEventListener('change', () => { loadBudgetsForMonth(); renderDashboard(); });
+            monthFilter.addEventListener('change', () => {
+                loadBudgetsForMonth();
+                renderDashboard();
+                try {
+                    const monthFilterEl = document.getElementById('month-filter');
+                    const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                    if (btnTrend && btnTrend.classList.contains('filter-btn-active')) {
+                        renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
+                    }
+                } catch (e) { /* safe */ }
+            });
             timePeriodFilter.addEventListener('change', renderDashboard);
             exportBtn.addEventListener('click', exportToExcel);
             const searchInputEl = document.getElementById('search-input');
@@ -1436,6 +1478,14 @@
                     renderDashboard();
                     // Update trend analysis cards when transactions change
                     try { updateTrendAnalysisCards(allTransactions); } catch (e) { /* safe */ }
+                    // If Trend tab active, re-render trend chart to include latest month selection
+                    try {
+                        const monthFilterEl = document.getElementById('month-filter');
+                        const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                        if (btnTrend && btnTrend.classList.contains('filter-btn-active')) {
+                            renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
+                        }
+                    } catch (e) { /* ignore */ }
                 }, (error) => {
                     console.error("Error fetching transactions: ", error);
                     const errorMessage = 'Failed to load data. Please check your internet connection.';
