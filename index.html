@@ -63,6 +63,15 @@
                         <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                     </button>
+                    <div id="auth-controls" class="flex items-center gap-2 ml-2">
+                        <button id="login-btn" class="bg-transparent border border-blue-600 text-blue-600 px-3 py-1 rounded-lg text-sm hover:bg-blue-50">Login</button>
+                        <button id="register-btn" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">Register</button>
+                        <div id="user-info" class="hidden items-center gap-2">
+                            <span id="user-email" class="text-sm text-gray-700 dark:text-gray-200"></span>
+                            <button id="logout-btn" class="bg-red-500 text-white px-2 py-1 rounded text-sm">Logout</button>
+                        </div>
+                        
+                    </div>
                 </div>
             </div>
         </header>
@@ -225,6 +234,18 @@
             </div>
         </div>
     </div>
+    <!-- Auth modals: Login & Register -->
+    <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
+            <h3 id="auth-modal-title" class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Login</h3>
+            <input id="auth-email" type="email" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Email" />
+            <input id="auth-password" type="password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Password" />
+            <div class="flex justify-between items-center">
+                <button id="auth-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="auth-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
+            </div>
+        </div>
+    </div>
     
     <template id="form-template">
         <h2 id="form-title" class="text-xl font-bold mb-6 text-gray-600 dark:text-gray-300">Add Transaction</h2>
@@ -331,7 +352,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCrYUkmMu-KD1e8Mf2-nKsu251SGHCqZKM",
@@ -344,9 +366,21 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-    const transactionsCol = collection(db, 'transactions');
-    const budgetsDoc = doc(db, 'budgets', 'user_budgets');
-    const categoriesDoc = doc(db, 'categories', 'user_categories');
+    console.log('Firebase initialized. client config projectId=', firebaseConfig.projectId, 'app.options=', app.options || {});
+
+    // Auth/user-scoped state (set when user signs in)
+    let currentUser = null;
+    let transactionsUnsub = null;
+    let categoriesUnsub = null;
+    let budgetsUnsubLocal = null;
+    // subscription function placeholders (assigned in init)
+    let subscribeCategoriesForUser = null;
+    let subscribeTransactionsForUser = null;
+
+    // helpers to obtain user-scoped refs
+    const getTransactionsCol = (uid) => collection(db, 'users', uid, 'transactions');
+    const getCategoriesDoc = (uid) => doc(db, 'users', uid, 'categories', 'user_categories');
+    const getBudgetsDocRef = (uid, monthStr) => doc(db, 'users', uid, 'budgets', monthStr);
 
         document.addEventListener('DOMContentLoaded', () => {
             const monthFilter = document.getElementById('month-filter');
@@ -382,14 +416,22 @@
                 Expense: ['Food & Drink', 'Transportation', 'Household Needs', 'Entertainment', 'Bills', 'Sports', 'Fashion', 'Other'] 
             };
 
-            // helper: per-month budget key in localStorage
-            const getBudgetsDocRef = (monthStr) => doc(db, 'budgets', monthStr);
-
+            // NOTE: use the user-scoped helper `getBudgetsDocRef(uid, monthStr)` defined above
+            // load budgets for the selected month (user-scoped when authenticated)
             const loadBudgetsForMonth = (monthStr) => {
                 const month = monthStr || monthFilter.value || (new Date()).toISOString().substring(0,7);
                 // unsubscribe previous listener
                 if (budgetsUnsub) { try { budgetsUnsub(); } catch (e) {} budgetsUnsub = null; }
-                const ref = getBudgetsDocRef(month);
+                // require user
+                if (!currentUser || !currentUser.uid) {
+                    budgets = {};
+                    categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                    return;
+                }
+                const ref = getBudgetsDocRef(currentUser.uid, month);
                 budgetsUnsub = onSnapshot(ref, (snap) => {
                     budgets = snap.exists() ? snap.data() : {};
                     categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
@@ -397,7 +439,7 @@
                     renderBudgetEditorForContainer(mobileFormContainer);
                     renderDashboard();
                 }, (err) => {
-                    console.error('Error loading budgets: ', err);
+                    console.error('Error loading budgets: ', err, 'ref.path=', ref && ref.path, 'clientProject=', (app && app.options && app.options.projectId));
                     // fallback to empty budgets
                     budgets = {};
                     categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
@@ -463,10 +505,11 @@
             const wireCategoryToggles = () => {
                 const saveCategories = async () => {
                     try {
-                        await setDoc(categoriesDoc, categories);
+                        if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
+                        await setDoc(getCategoriesDoc(currentUser.uid), categories);
                     } catch (err) {
                         console.error('Failed to save categories: ', err);
-                        alert('Failed to save categories to cloud.');
+                        alert('Failed to save categories to cloud: ' + (err && err.message ? err.message : String(err)));
                     }
                 };
                 // Attach manage-categories-toggle to every form instance (desktop + mobile)
@@ -608,6 +651,21 @@
                 const onlyDigits = String(str).replace(/[^0-9]/g, '');
                 if (onlyDigits === '') return '';
                 return onlyDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            };
+
+            // Normalize and set transactions array from a list of raw docs; deduplicate by id
+            const setAllTransactionsFromRaw = (rawDocs) => {
+                const map = new Map();
+                rawDocs.forEach(rd => {
+                    const id = rd.id;
+                    const data = { ...rd.data };
+                    if (data.date && typeof data.date === 'object' && typeof data.date.toDate === 'function') {
+                        try { data.date = data.date.toDate().toISOString().substring(0,10); } catch(e) { data.date = String(data.date); }
+                    }
+                    map.set(id, { id, ...data });
+                });
+                // preserve order by converting map values to array
+                allTransactions = Array.from(map.values());
             };
 
             const parseNumberFromFormatted = (str) => {
@@ -792,10 +850,11 @@
                 try {
                     const ok = await showConfirmModal('Are you sure you want to delete this transaction?');
                     if (ok) {
-                        await deleteDoc(doc(db, 'transactions', id));
+                        if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
+                        await deleteDoc(doc(db, 'users', currentUser.uid, 'transactions', id));
                     }
                 } catch (e) {
-                    // modal cancelled
+                    // modal cancelled or error
                 }
             };
 
@@ -1151,15 +1210,37 @@
                     account: currentForm.querySelector('#account').value
                 };
                 try {
+                    if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
                     if (id) {
-                        await updateDoc(doc(db, 'transactions', id), transactionData);
+                        await updateDoc(doc(db, 'users', currentUser.uid, 'transactions', id), transactionData);
+                        console.log('Updated transaction', id);
                     } else {
-                        await addDoc(transactionsCol, transactionData);
+                        const ref = await addDoc(getTransactionsCol(currentUser.uid), transactionData);
+                        console.log('Added transaction', ref.id, 'for user', currentUser.uid, transactionData);
+                        try {
+                            // attempt a direct server read to confirm the document was persisted
+                            const serverDocRef = doc(db, 'users', currentUser.uid, 'transactions', ref.id);
+                            const serverSnap = await getDoc(serverDocRef);
+                            console.log('Server read after add - exists:', serverSnap.exists(), 'data:', serverSnap.exists() ? serverSnap.data() : null);
+                        } catch (e) {
+                            console.error('Server read after add failed:', e);
+                        }
+                        try {
+                            // optimistic update so UI shows immediately while snapshot syncs
+                            const optimistic = { id: ref.id, ...transactionData };
+                            // avoid duplicate optimistic entry if a snapshot already contains this id
+                            if (!allTransactions.some(t => t.id === ref.id)) {
+                                allTransactions.push(optimistic);
+                            }
+                            try { populateMonthFilter(); } catch (e) {}
+                            renderDashboard();
+                            try { updateTrendAnalysisCards(allTransactions); } catch (e) {}
+                        } catch (e) { console.error('Optimistic update failed: ', e); }
                     }
                     resetFormState();
                 } catch (error) {
                     console.error("Error saving transaction: ", error);
-                    alert("Failed to save transaction. Please try again.");
+                    alert("Failed to save transaction: " + (error && error.message ? error.message : String(error)));
                 } finally {
                     currentSubmitBtn.disabled = false;
                 }
@@ -1279,14 +1360,15 @@
                     });
                     try {
                         const month = monthFilter.value || (new Date()).toISOString().substring(0,7);
-                        await setDoc(getBudgetsDocRef(month), newBudgets);
+                        if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
+                        await setDoc(getBudgetsDocRef(currentUser.uid, month), newBudgets);
                         budgets = newBudgets;
                         alert('Budgets saved successfully.');
                         renderBudgetEditorForContainer(container);
                         renderDashboard();
                     } catch (e) {
                         console.error("Error saving budgets: ", e);
-                        alert('Failed to save budgets.');
+                        alert('Failed to save budgets: ' + (e && e.message ? e.message : String(e)));
                     }
                 };
 
@@ -1300,14 +1382,15 @@
                     categories.Expense.forEach(cat => newBudgets[cat] = 0);
                     try {
                         const month = monthFilter.value || (new Date()).toISOString().substring(0,7);
-                        await setDoc(getBudgetsDocRef(month), newBudgets);
+                        if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
+                        await setDoc(getBudgetsDocRef(currentUser.uid, month), newBudgets);
                         budgets = newBudgets;
                         alert('Budgets have been reset.');
                         renderBudgetEditorForContainer(container);
                         renderDashboard();
                     } catch (e) {
                         console.error('Error resetting budgets: ', e);
-                        alert('Failed to reset budgets.');
+                        alert('Failed to reset budgets: ' + (e && e.message ? e.message : String(e)));
                     }
                 };
 
@@ -1426,6 +1509,115 @@
             const searchInputEl = document.getElementById('search-input');
             if (searchInputEl) searchInputEl.addEventListener('input', renderDashboard);
 
+            // --- Firebase Auth setup & UI wiring ---
+            const auth = getAuth();
+            // prefer persistent login across sessions
+            try { setPersistence(auth, browserLocalPersistence).catch(() => {}); } catch (e) { /* ignore */ }
+
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userInfo = document.getElementById('user-info');
+            const userEmailSpan = document.getElementById('user-email');
+            const authModal = document.getElementById('auth-modal');
+            const authTitle = document.getElementById('auth-modal-title');
+            const authEmail = document.getElementById('auth-email');
+            const authPassword = document.getElementById('auth-password');
+            const authCancel = document.getElementById('auth-cancel');
+            const authSubmit = document.getElementById('auth-submit');
+
+            let authMode = 'login'; // or 'register'
+
+            const openAuthModal = (mode) => {
+                authMode = mode;
+                authTitle.textContent = mode === 'login' ? 'Login' : 'Register';
+                authEmail.value = '';
+                authPassword.value = '';
+                authModal.classList.remove('hidden');
+            };
+
+            const closeAuthModal = () => { authModal.classList.add('hidden'); };
+
+            if (loginBtn) loginBtn.addEventListener('click', () => openAuthModal('login'));
+            if (registerBtn) registerBtn.addEventListener('click', () => openAuthModal('register'));
+            if (authCancel) authCancel.addEventListener('click', closeAuthModal);
+
+            if (authSubmit) authSubmit.addEventListener('click', async () => {
+                const email = authEmail.value.trim();
+                const password = authPassword.value;
+                if (!email || !password) return alert('Enter email and password');
+                try {
+                    if (authMode === 'register') {
+                        const cred = await createUserWithEmailAndPassword(auth, email, password);
+                        // create initial user documents in Firestore under /users/{uid}/...
+                        try {
+                            const uid = cred.user.uid;
+                            console.log('User registered uid=', uid, 'creating initial docs...');
+                            // user meta/profile
+                            await setDoc(doc(db, 'users', uid, 'meta', 'profile'), { email, createdAt: serverTimestamp() });
+                            // default categories (use current in-memory categories)
+                            await setDoc(getCategoriesDoc(uid), categories);
+                            console.log('Initial user docs created for uid=', uid);
+                        } catch (docErr) {
+                            console.error('Failed to create initial user documents: ', docErr);
+                        }
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, password);
+                    }
+                    closeAuthModal();
+                } catch (err) {
+                    console.error('Auth error: ', err);
+                    alert(err.message || 'Authentication failed');
+                }
+            });
+
+            if (logoutBtn) logoutBtn.addEventListener('click', async () => { try { await signOut(auth); } catch (e) { /* ignore */ } });
+
+            // TestWrite removed
+
+            // debounce clearing state on transient null auth events (register/signin may emit intermediate null)
+            let _authClearTimer = null;
+            onAuthStateChanged(auth, (user) => {
+                // cancel any pending clear when a user appears
+                if (user) {
+                    if (_authClearTimer) { clearTimeout(_authClearTimer); _authClearTimer = null; }
+                }
+
+                currentUser = user || null;
+                console.log('Auth state changed. user=', currentUser ? currentUser.uid : null);
+                if (user) {
+                    if (userEmailSpan) userEmailSpan.textContent = user.email || user.displayName || 'User';
+                    if (userInfo) userInfo.classList.remove('hidden');
+                    if (loginBtn) loginBtn.classList.add('hidden');
+                    if (registerBtn) registerBtn.classList.add('hidden');
+                    // subscribe to user-scoped data
+                    try { subscribeCategoriesForUser(user.uid); } catch (e) { console.error('subscribeCategoriesForUser failed: ', e); }
+                    try { subscribeTransactionsForUser(user.uid); } catch (e) { console.error('subscribeTransactionsForUser failed: ', e); }
+                    try { loadBudgetsForMonth(); } catch (e) { console.error('loadBudgetsForMonth failed: ', e); }
+                } else {
+                    // delay clearing state briefly to avoid wiping during transient auth flips
+                    if (_authClearTimer) { clearTimeout(_authClearTimer); }
+                    _authClearTimer = setTimeout(() => {
+                        _authClearTimer = null;
+                        // cleanup subscriptions
+                        if (categoriesUnsub) { try { categoriesUnsub(); } catch (e) {} categoriesUnsub = null; }
+                        if (transactionsUnsub) { try { transactionsUnsub(); } catch (e) {} transactionsUnsub = null; }
+                        if (budgetsUnsub) { try { budgetsUnsub(); } catch (e) {} budgetsUnsub = null; }
+                        // reset local state
+                        allTransactions = [];
+                        budgets = {};
+                        categories = { Income: ['Salary', 'Other Income'], Expense: ['Food & Drink','Transportation','Household Needs','Entertainment','Bills','Sports','Fashion','Other'] };
+                        renderCategoriesPanel();
+                        renderBudgetEditorForContainer(desktopFormContainer);
+                        renderBudgetEditorForContainer(mobileFormContainer);
+                        renderDashboard();
+                        if (userInfo) userInfo.classList.add('hidden');
+                        if (loginBtn) loginBtn.classList.remove('hidden');
+                        if (registerBtn) registerBtn.classList.remove('hidden');
+                    }, 800);
+                }
+            });
+
             const init = () => {
                 const savedTheme = localStorage.getItem('theme');
                 const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1445,53 +1637,76 @@
                 // load budgets for the currently selected month from localStorage
                 loadBudgetsForMonth();
 
-                // listen for categories from Firestore (real-time)
-                onSnapshot(categoriesDoc, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        // normalize shape
-                        categories = {
-                            Income: Array.isArray(data.Income) ? data.Income.slice() : (data.Income ? Object.values(data.Income) : ['Salary','Other Income']),
-                            Expense: Array.isArray(data.Expense) ? data.Expense.slice() : (data.Expense ? Object.values(data.Expense) : ['Food & Drink','Transportation','Household Needs','Entertainment','Bills','Sports','Fashion','Other'])
-                        };
-                    }
-                    else {
-                        // initialize default categories in Firestore if missing
-                        setDoc(categoriesDoc, categories).catch(err => console.error('Failed to initialize categories: ', err));
-                    }
-                    renderCategoriesPanel();
-                    renderBudgetEditorForContainer(desktopFormContainer);
-                    renderBudgetEditorForContainer(mobileFormContainer);
-                    renderDashboard();
-                }, (err) => {
-                    console.error('Error loading categories: ', err);
-                    renderCategoriesPanel();
-                });
+                // categories are user-scoped; subscription established on auth
+                subscribeCategoriesForUser = (uid) => {
+                    if (categoriesUnsub) { try { categoriesUnsub(); } catch (e) {} categoriesUnsub = null; }
+                    const ref = getCategoriesDoc(uid);
+                    categoriesUnsub = onSnapshot(ref, (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            // normalize shape
+                            categories = {
+                                Income: Array.isArray(data.Income) ? data.Income.slice() : (data.Income ? Object.values(data.Income) : ['Salary','Other Income']),
+                                Expense: Array.isArray(data.Expense) ? data.Expense.slice() : (data.Expense ? Object.values(data.Expense) : ['Food & Drink','Transportation','Household Needs','Entertainment','Bills','Sports','Fashion','Other'])
+                            };
+                        } else {
+                            // initialize default categories in Firestore if missing
+                            setDoc(ref, categories).catch(err => console.error('Failed to initialize categories: ', err));
+                        }
+                        renderCategoriesPanel();
+                        renderBudgetEditorForContainer(desktopFormContainer);
+                        renderBudgetEditorForContainer(mobileFormContainer);
+                        renderDashboard();
+                    }, (err) => {
+                        console.error('Error loading categories: ', err);
+                        renderCategoriesPanel();
+                    });
+                };
 
                 resetFormState();
                 desktopTbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</td></tr>';
                 mobileCardList.innerHTML = '<div class="text-center py-10 text-gray-500 dark:text-gray-400">Loading data from cloud...</div>';
 
-                onSnapshot(transactionsCol, (snapshot) => {
-                    allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    populateMonthFilter();
-                    renderDashboard();
-                    // Update trend analysis cards when transactions change
-                    try { updateTrendAnalysisCards(allTransactions); } catch (e) { /* safe */ }
-                    // If Trend tab active, re-render trend chart to include latest month selection
+                subscribeTransactionsForUser = async (uid) => {
+                    if (transactionsUnsub) { try { transactionsUnsub(); } catch (e) {} transactionsUnsub = null; }
+                    const ref = getTransactionsCol(uid);
+                    // initial server read to diagnose read permissions / existing docs
                     try {
-                        const monthFilterEl = document.getElementById('month-filter');
-                        const endKey = monthFilterEl ? monthFilterEl.value : undefined;
-                        if (btnTrend && btnTrend.classList.contains('filter-btn-active')) {
-                            renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
-                        }
-                    } catch (e) { /* ignore */ }
-                }, (error) => {
-                    console.error("Error fetching transactions: ", error);
-                    const errorMessage = 'Failed to load data. Please check your internet connection.';
-                    desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500">${errorMessage}</td></tr>`;
-                    mobileCardList.innerHTML = `<div class="text-center py-10 text-red-500">${errorMessage}</div>`;
-                });
+                        const snap = await getDocs(ref);
+                        console.log('Initial getDocs for transactions, size=', snap.size, 'ids=', snap.docs.map(d=>d.id));
+                        // map to local state immediately with diagnostics and Timestamp handling
+                        const initialDocs = snap.docs.map(d => ({ id: d.id, path: d.ref.path, data: d.data() }));
+                        console.log('Initial transaction docs detail:', initialDocs.map(d => ({ id: d.id, path: d.path, dateType: d.data && d.data.date ? (typeof d.data.date) : 'missing', dateValue: d.data && d.data.date ? d.data.date : null })));
+                        setAllTransactionsFromRaw(initialDocs);
+                        populateMonthFilter();
+                        renderDashboard();
+                    } catch (err) {
+                        console.error('Initial getDocs failed for transactions: ', err, 'ref.path=', ref && ref.path, 'clientProject=', (app && app.options && app.options.projectId));
+                    }
+
+                    // then attach realtime listener
+                    transactionsUnsub = onSnapshot(ref, (snapshot) => {
+                        console.log('Transactions snapshot received, size=', snapshot.size, 'ids=', snapshot.docs.map(d=>d.id));
+                        const docsDetail = snapshot.docs.map(d => ({ id: d.id, path: d.ref.path, data: d.data() }));
+                        console.log('Snapshot transaction docs detail:', docsDetail.map(d => ({ id: d.id, path: d.path, dateType: d.data && d.data.date ? (typeof d.data.date) : 'missing', dateValue: d.data && d.data.date ? d.data.date : null })));
+                        setAllTransactionsFromRaw(docsDetail);
+                        populateMonthFilter();
+                        renderDashboard();
+                        try { updateTrendAnalysisCards(allTransactions); } catch (e) { /* safe */ }
+                        try {
+                            const monthFilterEl = document.getElementById('month-filter');
+                            const endKey = monthFilterEl ? monthFilterEl.value : undefined;
+                            if (btnTrend && btnTrend.classList.contains('filter-btn-active')) {
+                                renderTrendChart(allTransactions, parseInt(trendRange.value || '6', 10), endKey);
+                            }
+                        } catch (e) { /* ignore */ }
+                    }, (error) => {
+                        console.error("Error fetching transactions (onSnapshot): ", error, 'ref.path=', ref && ref.path, 'clientProject=', (app && app.options && app.options.projectId));
+                        const errorMessage = 'Failed to load data. Please check your internet connection or Firestore rules.';
+                        desktopTbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500">${errorMessage}</td></tr>`;
+                        mobileCardList.innerHTML = `<div class="text-center py-10 text-red-500">${errorMessage}</div>`;
+                    });
+                };
 
                 // wire category UI toggles after DOM ready
                 try { wireCategoryToggles(); } catch (e) { /* ignore if not defined */ }
