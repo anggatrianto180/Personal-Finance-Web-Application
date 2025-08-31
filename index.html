@@ -38,6 +38,18 @@
             background-color: #2563eb !important;
             color: white !important;
         }
+        /* Toast: center on small screens, keep bottom-right on desktop */
+        #toast-container { right: 1rem; left: auto; }
+        @media (max-width: 640px) {
+            #toast-container { left: 50%; transform: translateX(-50%); right: auto; bottom: 1rem; width: calc(100% - 2rem); max-width: 420px; }
+            #toast-container > .toast { width: 100%; box-sizing: border-box; }
+        }
+
+        /* Modals and large panels: ensure they fit on mobile and scroll internally */
+        #modal section, #mobile-form-container, #change-password-modal > div, #forgot-email-modal > div, #auth-modal > div, #password-modal > div, #confirm-modal > div {
+            max-height: 90vh;
+            overflow: auto;
+        }
     </style>
 </head>
 <body class="bg-[#F9F5F0] dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -53,7 +65,7 @@
                     <button id="full-register-btn" type="button" class="text-sm text-blue-600 hover:underline">Register</button>
                     <button id="full-forgot-btn" type="button" class="text-sm text-blue-600 hover:underline">Forgot password?</button>
                 </div>
-                <button id="full-login-submit" class="px-4 py-2 rounded bg-blue-600 text-white">Login</button>
+                <button id="full-login-submit" type="button" aria-label="Sign in" class="px-4 py-2 rounded bg-blue-600 text-white">Login</button>
             </div>
             <div id="full-login-msg" class="text-sm text-red-600 hidden"></div>
         </div>
@@ -66,30 +78,30 @@
 
     <!-- Header (mobile-first): Home left, icons right, Year/Month selects below) -->
     <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <div class="w-full flex items-center justify-between">
+        <div class="w-full flex items-center justify-between flex-wrap">
             <div class="flex items-center">
-                <button id="home-btn" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Home</button>
+                <button id="home-btn" type="button" aria-label="Home" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Home</button>
             </div>
 
             <div class="flex items-center space-x-2">
-                <button id="export-btn" class="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" aria-label="Export">
+                <button id="export-btn" type="button" class="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" aria-label="Export">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 </button>
 
-                <button id="import-btn" class="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400" aria-label="Import" title="Import transactions">
+                <button id="import-btn" type="button" class="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400" aria-label="Import" title="Import transactions">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M21 21H3"/></svg>
                 </button>
 
-                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" aria-label="Toggle theme">
+                <button id="theme-toggle" type="button" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" aria-label="Toggle theme">
                     <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
 
                 <div id="auth-controls" class="flex items-center gap-2">
-                    <button id="login-btn" class="hidden bg-transparent border border-blue-600 text-blue-600 px-3 py-1 rounded-lg text-sm">Login</button>
-                    <button id="register-btn" class="hidden bg-blue-600 text-white px-3 py-1 rounded-lg text-sm">Register</button>
+                    <button id="login-btn" type="button" class="hidden bg-transparent border border-blue-600 text-blue-600 px-3 py-1 rounded-lg text-sm">Login</button>
+                    <button id="register-btn" type="button" class="hidden bg-blue-600 text-white px-3 py-1 rounded-lg text-sm">Register</button>
                     <div id="user-info" class="items-center gap-2 relative">
-                        <button id="user-menu-btn" class="ml-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:opacity-90" aria-label="User menu">
+                        <button id="user-menu-btn" type="button" class="ml-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:opacity-90" aria-label="User menu">
                             <span class="sr-only">Open user menu</span>
                             <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-medium text-white">U</div>
                         </button>
@@ -97,8 +109,8 @@
                             <div class="p-3">
                                 <div class="text-sm text-gray-600 dark:text-gray-300 truncate" id="user-menu-email"></div>
                                 <div class="mt-3">
-                                                    <button id="user-menu-change-pw" class="w-full bg-gray-200 text-gray-800 py-2 rounded text-sm mb-2">Change password</button>
-                                                    <button id="user-menu-logout" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
+                                                    <button id="user-menu-change-pw" type="button" class="w-full bg-gray-200 text-gray-800 py-2 rounded text-sm mb-2">Change password</button>
+                                                    <button id="user-menu-logout" type="button" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
                                 </div>
                             </div>
                         </div>
@@ -107,9 +119,12 @@
             </div>
         </div>
 
-        <div class="w-full mt-3 sm:mt-0 sm:w-auto flex items-center space-x-2">
-            <select id="year-select" class="w-28 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
-            <select id="month-filter" class="w-40 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
+        <!-- selects row: stacks on mobile, inline on desktop -->
+        <div class="w-full mt-3 sm:mt-0 sm:w-auto flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+            <div class="flex justify-start sm:justify-end w-full sm:w-auto space-x-0 sm:space-x-2">
+                <select id="year-select" class="w-full sm:w-40 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 h-10 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-2 sm:mb-0"></select>
+                <select id="month-filter" class="w-full sm:w-40 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 h-10 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-2 sm:mb-0"></select>
+            </div>
         </div>
     </header>
 
@@ -123,7 +138,7 @@
                             <p class="text-sm text-green-700 dark:text-green-300 font-semibold">Income</p>
                             <div class="flex items-center justify-center gap-2">
                                 <p id="total-income" class="text-base sm:text-xl font-normal sm:font-bold text-green-800 dark:text-green-200">Rp 0</p>
-                                <button id="income-visibility-toggle" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <button id="income-visibility-toggle" type="button" aria-label="Toggle income visibility" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                                     <svg class="w-6 h-6" id="income-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                     <svg class="w-6 h-6 hidden" id="income-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>
                                 </button>
@@ -133,7 +148,7 @@
                             <p class="text-sm text-blue-700 dark:text-blue-300 font-semibold">Balance</p>
                              <div class="flex items-center justify-center gap-2">
                                 <p id="net-balance" class="text-base sm:text-xl font-normal sm:font-bold text-blue-800 dark:text-blue-200">Rp 0</p>
-                                <button id="balance-visibility-toggle" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <button id="balance-visibility-toggle" type="button" aria-label="Toggle balance visibility" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                                     <svg class="w-6 h-6" id="balance-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                     <svg class="w-6 h-6 hidden" id="balance-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>
                                 </button>
@@ -155,8 +170,8 @@
                         <div class="mb-3 flex flex-col items-center">
                             <div class="inline-flex rounded-md shadow-sm" role="group">
                                 <!-- Use same filter style as transaction history: apply/remove `filter-btn-active` -->
-                                <button id="btn-distribution" class="px-3 py-1 text-sm font-semibold rounded-l-md filter-btn-active">Distribution</button>
-                                <button id="btn-trend" class="px-3 py-1 text-sm font-semibold rounded-r-md">Trend</button>
+                                <button id="btn-distribution" type="button" class="px-3 py-1 text-sm font-semibold rounded-l-md filter-btn-active" aria-pressed="true">Distribution</button>
+                                <button id="btn-trend" type="button" class="px-3 py-1 text-sm font-semibold rounded-r-md" aria-pressed="false">Trend</button>
                             </div>
                             <div id="trend-controls" class="hidden mt-2 flex items-center gap-2">
                                 <label class="text-xs text-gray-500 dark:text-gray-400 mr-1">Range:</label>
@@ -209,9 +224,9 @@
                                 <input id="search-input" type="text" placeholder="Search by description..." class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm h-11 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                                 <div>
                                     <div id="type-filter-buttons" class="flex w-full rounded-md bg-gray-200 dark:bg-gray-700 p-1">
-                                        <button data-filter="all" class="filter-btn-active w-full px-3 text-sm font-semibold rounded-md">All</button>
-                                        <button data-filter="Income" class="w-full px-3 text-sm font-semibold rounded-md">Income</button>
-                                        <button data-filter="Expense" class="w-full px-3 text-sm font-semibold rounded-md">Expense</button>
+                                        <button type="button" data-filter="all" class="filter-btn-active w-full px-3 text-sm font-semibold rounded-md">All</button>
+                                        <button type="button" data-filter="Income" class="w-full px-3 text-sm font-semibold rounded-md">Income</button>
+                                        <button type="button" data-filter="Expense" class="w-full px-3 text-sm font-semibold rounded-md">Expense</button>
                                     </div>
                                 </div>
                             </div>
@@ -245,7 +260,7 @@
         </main>
     </div>
 
-    <button id="fab" class="lg:hidden fixed bottom-6 right-6 bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform hover:scale-110">
+    <button id="fab" type="button" aria-label="Add transaction" class="lg:hidden fixed bottom-6 right-6 bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
@@ -263,8 +278,8 @@
             <h3 class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Enter password</h3>
             <input id="password-input" type="password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Password" />
             <div class="flex justify-end gap-2">
-                <button id="password-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
-                <button id="password-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
+                <button id="password-cancel" type="button" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="password-submit" type="button" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
             </div>
         </div>
     </div>
@@ -274,8 +289,8 @@
         <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
             <div id="confirm-text" class="text-sm text-gray-700 dark:text-gray-200 mb-3">Are you sure?</div>
             <div class="flex justify-end gap-2">
-                <button id="confirm-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
-                <button id="confirm-ok" class="px-3 py-1 rounded bg-red-600 dark:bg-red-500 text-white">Delete</button>
+                <button id="confirm-cancel" type="button" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="confirm-ok" type="button" class="px-3 py-1 rounded bg-red-600 dark:bg-red-500 text-white">Delete</button>
             </div>
         </div>
     </div>
@@ -286,8 +301,8 @@
             <input id="current-password" type="password" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Current password" />
             <input id="new-password" type="password" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="New password (min 6 chars)" />
             <div class="flex justify-end gap-2">
-                <button id="change-pw-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
-                <button id="change-pw-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Change</button>
+                <button id="change-pw-cancel" type="button" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="change-pw-submit" type="button" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Change</button>
             </div>
         </div>
     </div>
@@ -298,8 +313,8 @@
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Enter your account email to receive a password reset link.</p>
             <input id="forgot-email-input" type="email" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Your email" />
             <div class="flex justify-end gap-2">
-                <button id="forgot-email-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
-                <button id="forgot-email-send" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Send</button>
+                <button id="forgot-email-cancel" type="button" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="forgot-email-send" type="button" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Send</button>
             </div>
         </div>
     </div>
@@ -311,8 +326,8 @@
             <input id="auth-password" type="password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Password" />
             <div class="text-sm text-right mb-2"><button type="button" id="forgot-password-link" class="text-blue-600 hover:underline">Forgot password?</button></div>
             <div class="flex justify-between items-center">
-                <button id="auth-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
-                <button id="auth-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
+                <button id="auth-cancel" type="button" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="auth-submit" type="button" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
             </div>
         </div>
     </div>
@@ -410,7 +425,7 @@
                                     <option value="Expense">Expense</option>
                                     <option value="Income">Income</option>
                                 </select>
-                                <button class="add-category-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">Add</button>
+                                <button type="button" class="add-category-btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">Add</button>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">New categories will appear in the list above. Income items are shown first, then Expense items.</p>
                         </div>
@@ -452,7 +467,37 @@
     const getCategoriesDoc = (uid) => doc(db, 'users', uid, 'categories', 'user_categories');
     const getBudgetsDocRef = (uid, monthStr) => doc(db, 'users', uid, 'budgets', monthStr);
 
-        document.addEventListener('DOMContentLoaded', () => {
+            // Auto-switch month filter at WIB midnight
+            let wibMonthAutoSwitchTimer = null;
+            // Helper: get current date in WIB (UTC+7)
+            const getWIBDate = (d = new Date()) => {
+                const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                const wib = new Date(utc + (7 * 60 * 60000));
+                return wib;
+            };
+            // Helper: get current WIB month string YYYY-MM
+            const getCurrentWIBMonthStr = () => {
+                const wib = getWIBDate();
+                return `${wib.getFullYear()}-${String(wib.getMonth() + 1).padStart(2, '0')}`;
+            };
+            function scheduleWIBMonthAutoSwitch() {
+                if (wibMonthAutoSwitchTimer) clearTimeout(wibMonthAutoSwitchTimer);
+                const now = getWIBDate();
+                // Next WIB midnight
+                const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+                const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+                wibMonthAutoSwitchTimer = setTimeout(() => {
+                    // After midnight, update month filter if month changed
+                    const newMonthStr = getCurrentWIBMonthStr();
+                    if (monthFilter.value !== newMonthStr) {
+                        monthFilter.value = newMonthStr;
+                        renderDashboard();
+                    }
+                    scheduleWIBMonthAutoSwitch(); // reschedule for next midnight
+                }, msUntilMidnight + 1000); // add 1s buffer
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
             const monthFilter = document.getElementById('month-filter');
             const desktopTbody = document.getElementById('desktop-tbody');
             const mobileCardList = document.getElementById('mobile-card-list');
@@ -473,6 +518,20 @@
 
             desktopFormContainer.innerHTML = formTemplate.innerHTML;
             mobileFormContainer.innerHTML = formTemplate.innerHTML;
+
+            // Ensure date inputs default to local today (avoids UTC timezone off-by-one)
+            const getLocalIsoToday = () => {
+                const d = new Date();
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            };
+            try {
+                const today = getLocalIsoToday();
+                const d1 = desktopFormContainer.querySelector('#date'); if (d1) d1.value = today;
+                const d2 = mobileFormContainer.querySelector('#date'); if (d2) d2.value = today;
+            } catch (e) { /* safe */ }
 
             let allTransactions = [];
             let expenseChart;
@@ -599,8 +658,8 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${item.type}</div>
                             </div>
                             <div class="mt-2 sm:mt-0 sm:ml-4 flex gap-2">
-                                <button class="edit-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">Edit</button>
-                                <button class="del-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-red-600">Delete</button>
+                                <button type="button" class="edit-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600">Edit</button>
+                                <button type="button" class="del-cat px-3 py-1.5 text-sm rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-red-600">Delete</button>
                             </div>
                         `;
                         list.appendChild(li);
@@ -629,7 +688,7 @@
                         await setDoc(getCategoriesDoc(currentUser.uid), categories);
                     } catch (err) {
                         console.error('Failed to save categories: ', err);
-                        alert('Failed to save categories to cloud: ' + (err && err.message ? err.message : String(err)));
+                        showToast('Failed to save categories to cloud: ' + (err && err.message ? err.message : String(err)), 'error');
                     }
                 };
                 // Attach manage-categories-toggle to every form instance (desktop + mobile)
@@ -707,8 +766,8 @@
                                         <option value="Expense">Expense</option>
                                         <option value="Income">Income</option>
                                     </select>
-                                    <button class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded-md text-sm">Save</button>
-                                    <button class="cancel-edit-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-sm">Cancel</button>
+                                    <button type="button" class="save-edit-btn bg-blue-600 text-white px-4 py-2 rounded-md text-sm">Save</button>
+                                    <button type="button" class="cancel-edit-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-md text-sm">Cancel</button>
                                 </div>
                             </div>
                         `;
@@ -725,10 +784,10 @@
                             const input = li.querySelector('.edit-input');
                             const newType = li.querySelector('.edit-type').value;
                             const newName = input ? input.value.trim() : '';
-                            if (!newName) return alert('Name cannot be empty');
+                            if (!newName) return showToast('Name cannot be empty', 'warn');
                             // case-insensitive duplicate check
                             const nameExists = (arr, name) => arr.some(a => a.toLowerCase() === name.toLowerCase());
-                            if ((nameExists(categories.Income, newName) || nameExists(categories.Expense, newName)) && newName.toLowerCase() !== oldName.toLowerCase()) return alert('Category already exists');
+                            if ((nameExists(categories.Income, newName) || nameExists(categories.Expense, newName)) && newName.toLowerCase() !== oldName.toLowerCase()) return showToast('Category already exists', 'warn');
                             // find current index again
                             const currentIdx = categories[type].indexOf(oldName);
                             if (currentIdx !== -1) categories[type].splice(currentIdx, 1);
@@ -749,8 +808,8 @@
                         const typeSelect = form ? form.querySelector('.new-category-type') : document.querySelector('.new-category-type');
                         const name = nameInput.value.trim();
                         const type = typeSelect.value;
-                        if (!name) return alert('Enter category name');
-                        if (categories.Income.includes(name) || categories.Expense.includes(name)) return alert('Category already exists');
+                        if (!name) return showToast('Enter category name', 'warn');
+                        if (categories.Income.includes(name) || categories.Expense.includes(name)) return showToast('Category already exists', 'warn');
                         categories[type].push(name);
                         nameInput.value = '';
                         renderCategoriesPanel();
@@ -871,7 +930,7 @@
                             localStorage.setItem('visibilityState', JSON.stringify(visibilityState));
                             updateVisibilityUI();
                         } else {
-                            alert('Incorrect password.');
+                            showToast('Incorrect password.', 'error');
                         }
                     }).catch(() => {});
                 }
@@ -906,13 +965,15 @@
                 // Populate months based on selected year (Jan..Dec)
                 const yearSelect = document.getElementById('year-select');
                 const selectedYear = yearSelect ? yearSelect.value : (new Date()).getFullYear().toString();
-                const currentSelection = monthFilter.value;
+                // Use WIB month for default selection
+                const currentSelection = monthFilter.value || getCurrentWIBMonthStr();
                 monthFilter.innerHTML = '';
 
                 // first option: show all months for the selected year (year-only view)
                 const allOpt = document.createElement('option');
                 allOpt.value = selectedYear; // year-only value like '2025'
-                allOpt.textContent = `${selectedYear} (All months)`;
+                // Don't repeat year here because Year is selected separately
+                allOpt.textContent = `All months`;
                 monthFilter.appendChild(allOpt);
 
                 // create months Jan..Dec for the selected year
@@ -922,18 +983,26 @@
                     const date = new Date(parseInt(selectedYear, 10), m, 1);
                     const option = document.createElement('option');
                     option.value = monthStr;
-                    option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    // show month name only; selected year is already chosen in the Year select
+                    option.textContent = date.toLocaleDateString('en-US', { month: 'long' });
                     monthFilter.appendChild(option);
                 }
 
                 // try to preserve previous selection if it's in the same year
                 if (currentSelection && currentSelection.startsWith(selectedYear)) {
-                    monthFilter.value = currentSelection;
+                    // If currentSelection is not in options, set to current WIB month
+                    if (!Array.from(monthFilter.options).some(o => o.value === currentSelection)) {
+                        monthFilter.value = getCurrentWIBMonthStr();
+                    } else {
+                        monthFilter.value = currentSelection;
+                    }
                 } else {
                         // default: if current year, select current month; otherwise select the year-all option
                         const now = new Date();
                         const currentMonthStr = now.toISOString().substring(0, 7);
-                        if (currentMonthStr.startsWith(selectedYear)) monthFilter.value = currentMonthStr;
+                        // Use WIB month for default selection
+                        const wibMonthStr = getCurrentWIBMonthStr();
+                        if (wibMonthStr.startsWith(selectedYear)) monthFilter.value = wibMonthStr;
                         else monthFilter.value = selectedYear; // year-only default
                 }
             };
@@ -973,7 +1042,7 @@
                 // require password for editing Income
                 if (transaction.type === 'Income') {
                     showPasswordModal('Enter password to edit Income:').then(pw => {
-                        if (pw !== '0124') return alert('Incorrect password.');
+                        if (pw !== '0124') return showToast('Incorrect password.', 'error');
                         proceedEdit();
                     }).catch(() => {});
                 } else {
@@ -1045,8 +1114,8 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${t.account}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button onclick="startEditTransaction('${t.id}')" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-3">Edit</button>
-                            <button onclick="deleteTransaction('${t.id}')" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
+                            <button type="button" onclick="startEditTransaction('${t.id}')" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-3">Edit</button>
+                            <button type="button" onclick="deleteTransaction('${t.id}')" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
                         </td>
                     `;
                     desktopTbody.appendChild(row);
@@ -1062,8 +1131,8 @@
                             <div class="text-right">
                                 <div class="font-semibold text-base whitespace-nowrap ${t.type === 'Income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${amountDisplay}</div>
                                 <div class="mt-1 flex items-center justify-end gap-2">
-                                    <button onclick="startEditTransaction('${t.id}')" class="text-xs text-indigo-600 dark:text-indigo-400">Edit</button>
-                                    <button onclick="deleteTransaction('${t.id}')" class="text-xs text-red-600 dark:text-red-400">Delete</button>
+                                    <button type="button" onclick="startEditTransaction('${t.id}')" class="text-xs text-indigo-600 dark:text-indigo-400">Edit</button>
+                                    <button type="button" onclick="deleteTransaction('${t.id}')" class="text-xs text-red-600 dark:text-red-400">Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -1416,6 +1485,15 @@
                 }
             };
             
+            // return local date in YYYY-MM-DD (avoids timezone UTC shift issues)
+            const formatLocalDateISO = (date = new Date()) => {
+                const d = date;
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            };
+
             const resetFormState = () => {
                 const containers = [desktopFormContainer, mobileFormContainer];
                 containers.forEach(container => {
@@ -1423,7 +1501,9 @@
                     if (formToReset) {
                         formToReset.reset();
                         container.querySelector('#transaction-id').value = '';
-                        container.querySelector('#date').valueAsDate = new Date();
+                        // set date input using local-date ISO string to avoid timezone off-by-one
+                        const dateEl = container.querySelector('#date');
+                        if (dateEl) dateEl.value = formatLocalDateISO(new Date());
                         container.querySelector('#form-title').textContent = 'Add Transaction';
                         container.querySelector('#submit-btn').textContent = 'Save';
                         container.querySelector('#cancel-edit-btn').classList.add('hidden');
@@ -1477,7 +1557,7 @@
                         XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
                         XLSX.writeFile(workbook, `Financial Report - ${selectedLabel}.xlsx`);
                     } else {
-                        alert('Incorrect password.');
+                        showToast('Incorrect password.', 'error');
                     }
                 }).catch(() => {});
             };
@@ -1529,7 +1609,7 @@
                 saveBtn.onclick = null;
                 saveBtn.onclick = async () => {
                     if (budgetsAreAnnual) {
-                        alert('Budget editing is disabled while viewing annual aggregates. Please select a specific month to edit monthly budgets.');
+                        showToast('Budget editing is disabled while viewing annual aggregates. Please select a specific month to edit monthly budgets.', 'info');
                         return;
                     }
                     const newBudgets = { ...budgets };
@@ -1787,7 +1867,7 @@
                 try {
                     if (!toastContainer) return; 
                     const el = document.createElement('div');
-                    el.className = 'max-w-xs w-full px-4 py-2 rounded shadow-lg text-sm text-white';
+                    el.className = 'toast max-w-xs w-full px-4 py-2 rounded shadow-lg text-sm text-white';
                     el.style.opacity = '0';
                     if (type === 'error') el.classList.add('bg-red-600');
                     else if (type === 'success') el.classList.add('bg-green-600');
@@ -1832,6 +1912,35 @@
                     authCooldownUntil = Date.now() + AUTH_COOLDOWN_MS;
                     showToast('Too many failed attempts. Try again in 60 seconds.', 'error', 5000);
                 }
+            };
+
+            // Map Firebase auth errors to user-friendly messages
+            const authErrorToMessage = (err) => {
+                if (!err) return 'Authentication failed. Please try again.';
+                const code = (err.code || '').toString();
+                switch (code) {
+                    case 'auth/user-not-found': return 'No account found for that email. Would you like to register?';
+                    case 'auth/wrong-password': return 'Incorrect password. Try again or reset your password.';
+                    case 'auth/invalid-email': return 'Please enter a valid email address.';
+                    case 'auth/user-disabled': return 'This account has been disabled. Contact support.';
+                    case 'auth/network-request-failed': return 'Network error. Check your connection and try again.';
+                    case 'auth/email-already-in-use': return 'This email is already registered. Try signing in.';
+                    case 'auth/weak-password': return 'Password is too weak. Use at least 6 characters.';
+                    default: return err && err.message ? err.message : 'Authentication failed. Please try again.';
+                }
+            };
+
+            // Show an inline message on the full-login page (keeps toasts for global notifications)
+            const showFullLoginMessage = (msg, type = 'error') => {
+                if (!fullLoginMsg) return;
+                fullLoginMsg.textContent = msg;
+                fullLoginMsg.classList.remove('hidden');
+                fullLoginMsg.classList.remove('text-green-600','text-yellow-600','text-red-600');
+                if (type === 'success') fullLoginMsg.classList.add('text-green-600');
+                else if (type === 'warn') fullLoginMsg.classList.add('text-yellow-600');
+                else fullLoginMsg.classList.add('text-red-600');
+                // hide after a while
+                setTimeout(() => { try { fullLoginMsg.classList.add('hidden'); } catch (e) {} }, 6000);
             };
 
             // --- Firebase Auth setup & UI wiring ---
@@ -1908,12 +2017,16 @@
                             if (cred && cred.user && typeof sendEmailVerification === 'function') {
                                 await sendEmailVerification(cred.user);
                                 showToast('Registration successful. A confirmation email has been sent.', 'success', 6000);
+                                // If registration originated from full-login page, show inline success
+                                showFullLoginMessage('Registration successful. Check your email to confirm.', 'success');
                             } else {
                                 showToast('Registration successful. Please verify your email.', 'success', 6000);
+                                showFullLoginMessage('Registration successful. Please verify your email.', 'success');
                             }
                         } catch (verifyErr) {
                             console.error('Failed to send verification email: ', verifyErr);
                             showToast('Registered but failed to send confirmation email.', 'error');
+                            showFullLoginMessage('Registered but failed to send confirmation email.', 'warn');
                         }
                     } else {
                         await signInWithEmailAndPassword(auth, email, password);
@@ -1922,7 +2035,18 @@
                 } catch (err) {
                     console.error('Auth error: ', err);
                     recordAuthFailure();
-                    showToast(err && err.message ? err.message : 'Authentication failed','error',5000);
+                    const friendly = authErrorToMessage(err);
+                    showToast(friendly, 'error', 5000);
+                    // If the full-login page is visible (mobile), also show inline message
+                    try { if (fullLoginPage && !fullLoginPage.classList.contains('hidden')) showFullLoginMessage(friendly, 'error'); } catch (e) {}
+                    // If the error is user-not-found and user is on the auth modal, suggest registering
+                    if (err && err.code === 'auth/user-not-found') {
+                        // prefill email into register flow
+                        if (authEmail && authEmail.value) {
+                            openAuthModal('register');
+                            authEmail.value = authEmail.value; // keep the email
+                        }
+                    }
                 } finally {
                     try { removeSpinner(authSubmit); authSubmit.textContent = origText; } catch (e) {}
                 }
@@ -1940,7 +2064,19 @@
                 } catch (err) {
                     console.error('Full-login sign in failed: ', err);
                     recordAuthFailure();
-                    showToast(err && err.message ? err.message : 'Sign in failed','error',4000);
+                    const friendly = authErrorToMessage(err);
+                    // On full-login page show inline message for better UX on mobile
+                    showFullLoginMessage(friendly, 'error');
+                    showToast(friendly, 'error', 4000);
+                    // If user not found, offer quick register link
+                    if (err && err.code === 'auth/user-not-found') {
+                        // show a subtle register suggestion next to message
+                        setTimeout(() => {
+                            // open register modal prefilled
+                            openAuthModal('register');
+                            if (fullEmail && authEmail) authEmail.value = fullEmail.value.trim();
+                        }, 800);
+                    }
                 } finally {
                     try { removeSpinner(fullLoginSubmit); } catch (e) {}
                 }
@@ -2010,12 +2146,16 @@
                 }
                 try {
                     await sendPasswordResetEmail(auth, email);
-                    showToast('Password reset email sent. Check your inbox.','success',4000);
+                    const msg = 'Password reset email sent. Check your inbox.';
+                    showToast(msg,'success',4000);
+                    try { if (fullLoginPage && !fullLoginPage.classList.contains('hidden')) showFullLoginMessage(msg, 'success'); } catch (e) {}
                     if (authModal) authModal.classList.add('hidden');
                 } catch (err) {
                     console.error('Failed to send reset email: ', err);
                     recordAuthFailure();
-                    showToast('Failed to send reset email: ' + (err && err.message ? err.message : String(err)),'error',5000);
+                    const friendly = authErrorToMessage(err);
+                    showToast('Failed to send reset email: ' + friendly,'error',5000);
+                    try { if (fullLoginPage && !fullLoginPage.classList.contains('hidden')) showFullLoginMessage(friendly, 'error'); } catch (e) {}
                 }
             });
 
@@ -2029,13 +2169,17 @@
                 if (!email) return showToast('Enter an email address.','error');
                 try {
                     await sendPasswordResetEmail(auth, email);
-                    showToast('Password reset email sent. Check your inbox.','success',4000);
+                    const msg = 'Password reset email sent. Check your inbox.';
+                    showToast(msg,'success',4000);
+                    try { if (fullLoginPage && !fullLoginPage.classList.contains('hidden')) showFullLoginMessage(msg, 'success'); } catch (e) {}
                     if (forgotEmailModal) forgotEmailModal.classList.add('hidden');
                     if (authModal) authModal.classList.add('hidden');
                 } catch (err) {
                     console.error('Failed to send reset email from forgot-email modal: ', err);
                     recordAuthFailure();
-                    showToast('Failed to send reset email: ' + (err && err.message ? err.message : String(err)),'error',5000);
+                    const friendly = authErrorToMessage(err);
+                    showToast('Failed to send reset email: ' + friendly,'error',5000);
+                    try { if (fullLoginPage && !fullLoginPage.classList.contains('hidden')) showFullLoginMessage(friendly, 'error'); } catch (e) {}
                 }
             });
 
@@ -2044,7 +2188,7 @@
             const changePwCancel = document.getElementById('change-pw-cancel');
             const changePwSubmit = document.getElementById('change-pw-submit');
             if (userMenuChangeBtn) userMenuChangeBtn.addEventListener('click', () => {
-                if (!currentUser) return alert('You must be signed in to change password.');
+                if (!currentUser) return showToast('You must be signed in to change password.', 'warn');
                 if (changePwModal) changePwModal.classList.remove('hidden');
                 userMenu.classList.add('hidden');
             });
@@ -2142,6 +2286,7 @@
 
                 try { populateYearSelect(); } catch (e) {}
                 populateMonthFilter();
+                scheduleWIBMonthAutoSwitch();
 
                 populateAccountOptions(desktopFormContainer, accounts);
                 populateAccountOptions(mobileFormContainer, accounts);
