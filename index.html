@@ -42,7 +42,27 @@
 </head>
 <body class="bg-[#F9F5F0] dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+    <!-- Full-page login shown when user is not authenticated -->
+    <div id="full-login-page" class="min-h-screen flex items-center justify-center p-6 bg-[#F9F5F0] dark:bg-gray-900">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-100">Please sign in</h2>
+            <input id="full-email" type="email" placeholder="Email" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" />
+            <input id="full-password" type="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" />
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <button id="full-register-btn" type="button" class="text-sm text-blue-600 hover:underline">Register</button>
+                    <button id="full-forgot-btn" type="button" class="text-sm text-blue-600 hover:underline">Forgot password?</button>
+                </div>
+                <button id="full-login-submit" class="px-4 py-2 rounded bg-blue-600 text-white">Login</button>
+            </div>
+            <div id="full-login-msg" class="text-sm text-red-600 hidden"></div>
+        </div>
+    </div>
+
+    <div id="app-root" class="container mx-auto p-4 sm:p-6 md:p-8">
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
 
     <!-- Header (mobile-first): Home left, icons right, Year/Month selects below) -->
     <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
@@ -54,6 +74,10 @@
             <div class="flex items-center space-x-2">
                 <button id="export-btn" class="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" aria-label="Export">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                </button>
+
+                <button id="import-btn" class="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400" aria-label="Import" title="Import transactions">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M21 21H3"/></svg>
                 </button>
 
                 <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" aria-label="Toggle theme">
@@ -73,7 +97,8 @@
                             <div class="p-3">
                                 <div class="text-sm text-gray-600 dark:text-gray-300 truncate" id="user-menu-email"></div>
                                 <div class="mt-3">
-                                    <button id="user-menu-logout" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
+                                                    <button id="user-menu-change-pw" class="w-full bg-gray-200 text-gray-800 py-2 rounded text-sm mb-2">Change password</button>
+                                                    <button id="user-menu-logout" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
                                 </div>
                             </div>
                         </div>
@@ -121,8 +146,11 @@
                     </div>
                 </section>
                 <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
-                    <h2 class="text-xl font-bold mb-4 text-gray-600 dark:text-gray-300">Expense Distribution</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This chart shows the proportion of your actual expenses for each category.</p>
+                    <h2 class="text-xl font-bold mb-2 text-gray-600 dark:text-gray-300">Expense Distribution</h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">This chart shows the proportion of your actual expenses for each category.</p>
+                        <div id="distribution-total" class="text-sm font-semibold text-gray-700 dark:text-gray-200">Total: Rp 0</div>
+                    </div>
                     <div class="chart-container">
                         <div class="mb-3 flex flex-col items-center">
                             <div class="inline-flex rounded-md shadow-sm" role="group">
@@ -227,6 +255,8 @@
         <section id="mobile-form-container" class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-11/12 max-w-lg mx-auto max-h-[90vh] overflow-y-auto p-6">
         </section>
     </div>
+    <!-- hidden file input for import -->
+    <input id="import-file-input" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
     <!-- Password modal -->
     <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
@@ -249,12 +279,37 @@
             </div>
         </div>
     </div>
+    <!-- Change Password modal -->
+    <div id="change-password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Change Password</h3>
+            <input id="current-password" type="password" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Current password" />
+            <input id="new-password" type="password" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="New password (min 6 chars)" />
+            <div class="flex justify-end gap-2">
+                <button id="change-pw-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="change-pw-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Change</button>
+            </div>
+        </div>
+    </div>
+    <!-- Forgot email modal: ask for email when user forgot their email on login -->
+    <div id="forgot-email-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Forgot password</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Enter your account email to receive a password reset link.</p>
+            <input id="forgot-email-input" type="email" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Your email" />
+            <div class="flex justify-end gap-2">
+                <button id="forgot-email-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
+                <button id="forgot-email-send" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Send</button>
+            </div>
+        </div>
+    </div>
     <!-- Auth modals: Login & Register -->
     <div id="auth-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-900 rounded-lg p-4 max-w-sm w-full border border-gray-200 dark:border-gray-700">
             <h3 id="auth-modal-title" class="font-semibold mb-2 text-gray-800 dark:text-gray-100">Login</h3>
             <input id="auth-email" type="email" class="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Email" />
             <input id="auth-password" type="password" class="w-full p-2 border rounded mb-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600" placeholder="Password" />
+            <div class="text-sm text-right mb-2"><button type="button" id="forgot-password-link" class="text-blue-600 hover:underline">Forgot password?</button></div>
             <div class="flex justify-between items-center">
                 <button id="auth-cancel" class="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
                 <button id="auth-submit" class="px-3 py-1 rounded bg-blue-600 dark:bg-blue-500 text-white">Submit</button>
@@ -368,7 +423,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyCrYUkmMu-KD1e8Mf2-nKsu251SGHCqZKM",
@@ -424,6 +479,7 @@
             let visibilityState = { income: false, balance: false };
             let typeFilter = 'all';
             let budgets = {};
+            let budgetsAreAnnual = false; // when true, `budgets` holds annual totals (sum of months)
             let budgetsUnsub = null;
 
             let categories = { 
@@ -433,8 +489,57 @@
 
             // NOTE: use the user-scoped helper `getBudgetsDocRef(uid, monthStr)` defined above
             // load budgets for the selected month (user-scoped when authenticated)
+            const loadBudgetsForYear = async (year) => {
+                // aggregate budgets for the whole year by summing each month's budget doc
+                budgetsAreAnnual = true;
+                // unsubscribe any previous monthly listener
+                if (budgetsUnsub) { try { budgetsUnsub(); } catch (e) {} budgetsUnsub = null; }
+                if (!currentUser || !currentUser.uid) {
+                    budgets = {};
+                    categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                    return;
+                }
+                try {
+                    const monthKeys = Array.from({ length: 12 }, (_, i) => `${year}-${String(i+1).padStart(2, '0')}`);
+                    const promises = monthKeys.map(mk => getDoc(getBudgetsDocRef(currentUser.uid, mk)));
+                    const snaps = await Promise.all(promises);
+                    const agg = {};
+                    snaps.forEach(snap => {
+                        if (snap && snap.exists && snap.exists()) {
+                            const data = snap.data();
+                            Object.keys(data || {}).forEach(k => {
+                                const v = Number(data[k]) || 0;
+                                agg[k] = (agg[k] || 0) + v;
+                            });
+                        }
+                    });
+                    // ensure all expense categories have keys
+                    categories.Expense.forEach(cat => { if (agg[cat] == null) agg[cat] = 0; });
+                    budgets = agg;
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                } catch (err) {
+                    console.error('Error loading annual budgets: ', err);
+                    budgets = {};
+                    categories.Expense.forEach(cat => { if (budgets[cat] == null) budgets[cat] = 0; });
+                    renderBudgetEditorForContainer(desktopFormContainer);
+                    renderBudgetEditorForContainer(mobileFormContainer);
+                    renderDashboard();
+                }
+            };
+
             const loadBudgetsForMonth = (monthStr) => {
-                const month = monthStr || monthFilter.value || (new Date()).toISOString().substring(0,7);
+                let month = monthStr || monthFilter.value || (new Date()).toISOString().substring(0,7);
+                // if month is a year-only string like '2025', load aggregated annual budgets instead
+                if (/^[0-9]{4}$/.test(month)) {
+                    loadBudgetsForYear(month);
+                    return;
+                }
+                budgetsAreAnnual = false;
                 // unsubscribe previous listener
                 if (budgetsUnsub) { try { budgetsUnsub(); } catch (e) {} budgetsUnsub = null; }
                 // require user
@@ -804,6 +909,12 @@
                 const currentSelection = monthFilter.value;
                 monthFilter.innerHTML = '';
 
+                // first option: show all months for the selected year (year-only view)
+                const allOpt = document.createElement('option');
+                allOpt.value = selectedYear; // year-only value like '2025'
+                allOpt.textContent = `${selectedYear} (All months)`;
+                monthFilter.appendChild(allOpt);
+
                 // create months Jan..Dec for the selected year
                 for (let m = 0; m < 12; m++) {
                     const monthIndex = (m + 1).toString().padStart(2, '0');
@@ -819,11 +930,11 @@
                 if (currentSelection && currentSelection.startsWith(selectedYear)) {
                     monthFilter.value = currentSelection;
                 } else {
-                    // default to current month if it matches selected year, otherwise Jan of selected year
-                    const now = new Date();
-                    const currentMonthStr = now.toISOString().substring(0, 7);
-                    if (currentMonthStr.startsWith(selectedYear)) monthFilter.value = currentMonthStr;
-                    else monthFilter.value = `${selectedYear}-01`;
+                        // default: if current year, select current month; otherwise select the year-all option
+                        const now = new Date();
+                        const currentMonthStr = now.toISOString().substring(0, 7);
+                        if (currentMonthStr.startsWith(selectedYear)) monthFilter.value = currentMonthStr;
+                        else monthFilter.value = selectedYear; // year-only default
                 }
             };
 
@@ -964,8 +1075,15 @@
             const renderDashboard = () => {
                 const selectedMonth = monthFilter.value;
                 if (!selectedMonth) return;
-                
-                let monthFilteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+
+                // if monthFilter value is a 4-digit year (e.g., '2025'), treat as year-all
+                const isYearOnly = /^[0-9]{4}$/.test(selectedMonth);
+                let monthFilteredTransactions;
+                if (isYearOnly) {
+                    monthFilteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                } else {
+                    monthFilteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                }
 
                 const totalIncome = monthFilteredTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
                 const totalExpense = monthFilteredTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
@@ -974,9 +1092,9 @@
                 document.getElementById('total-income').textContent = visibilityState.income ? formatCurrency(totalIncome) : '***';
                 document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
                 document.getElementById('net-balance').textContent = visibilityState.balance ? formatCurrency(netBalance) : '***';
-                
-                renderExpenseChart(monthFilteredTransactions);
-                renderBudgetStatus(monthFilteredTransactions);
+
+                renderExpenseChart(monthFilteredTransactions, isYearOnly, selectedMonth);
+                renderBudgetStatus(monthFilteredTransactions, isYearOnly, selectedMonth);
 
                 // if trend view active, update trend chart
                 const trendVisible = !document.getElementById('trend-canvas-wrapper').classList.contains('hidden');
@@ -1012,7 +1130,7 @@
                 renderTable(finalFilteredTransactions);
             };
             
-            const renderExpenseChart = (filteredTransactions) => {
+            const renderExpenseChart = (filteredTransactions, isYearOnly = false, selectedKey) => {
                 const canvas = document.getElementById('expense-chart');
                 const noDataMessage = document.getElementById('no-expense-message');
                 const ctx = canvas.getContext('2d');
@@ -1026,6 +1144,11 @@
 
                 const labels = Object.keys(expenseByCategory);
                 const expenseData = Object.values(expenseByCategory);
+
+                // update total display (monthly total or year total)
+                const total = expenseData.reduce((s, v) => s + v, 0);
+                const distTotalEl = document.getElementById('distribution-total');
+                if (distTotalEl) distTotalEl.textContent = 'Total: ' + formatCurrency(total) + (isYearOnly ? ` • Year ${selectedKey}` : '');
 
                 if (expenseChart) {
                     expenseChart.destroy();
@@ -1287,7 +1410,7 @@
                     resetFormState();
                 } catch (error) {
                     console.error("Error saving transaction: ", error);
-                    alert("Failed to save transaction: " + (error && error.message ? error.message : String(error)));
+                    showToast("Failed to save transaction: " + (error && error.message ? error.message : String(error)), 'error', 5000);
                 } finally {
                     currentSubmitBtn.disabled = false;
                 }
@@ -1313,12 +1436,18 @@
             const exportToExcel = () => {
                 showPasswordModal('Enter password to export data:').then(password => {
                     if (password === '0124') {
-                        const selectedMonth = monthFilter.value;
-                        const selectedMonthName = monthFilter.options[monthFilter.selectedIndex].text;
-                        const filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                        const selectedKey = monthFilter.value;
+                        const selectedLabel = monthFilter.options[monthFilter.selectedIndex].text;
+                        let filteredTransactions;
+                        if (/^[0-9]{4}$/.test(selectedKey)) {
+                            // year-only
+                            filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedKey));
+                        } else {
+                            filteredTransactions = allTransactions.filter(t => t.date.startsWith(selectedKey));
+                        }
 
                         if (filteredTransactions.length === 0) {
-                            alert('No data to export for this month.');
+                            showToast('No data to export for the selected period.', 'error');
                             return;
                         }
 
@@ -1346,7 +1475,7 @@
 
                         const workbook = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(workbook, worksheet, "Financial Report");
-                        XLSX.writeFile(workbook, `Financial Report - ${selectedMonthName}.xlsx`);
+                        XLSX.writeFile(workbook, `Financial Report - ${selectedLabel}.xlsx`);
                     } else {
                         alert('Incorrect password.');
                     }
@@ -1399,6 +1528,10 @@
                 // ensure we don't attach duplicate listeners when re-rendering
                 saveBtn.onclick = null;
                 saveBtn.onclick = async () => {
+                    if (budgetsAreAnnual) {
+                        alert('Budget editing is disabled while viewing annual aggregates. Please select a specific month to edit monthly budgets.');
+                        return;
+                    }
                     const newBudgets = { ...budgets };
                     fields.querySelectorAll('input[data-cat]').forEach(input => {
                         const c = input.dataset.cat;
@@ -1410,12 +1543,12 @@
                         if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
                         await setDoc(getBudgetsDocRef(currentUser.uid, month), newBudgets);
                         budgets = newBudgets;
-                        alert('Budgets saved successfully.');
+                        showToast('Budgets saved successfully.', 'success');
                         renderBudgetEditorForContainer(container);
                         renderDashboard();
                     } catch (e) {
                         console.error("Error saving budgets: ", e);
-                        alert('Failed to save budgets: ' + (e && e.message ? e.message : String(e)));
+                        showToast('Failed to save budgets: ' + (e && e.message ? e.message : String(e)), 'error');
                     }
                 };
 
@@ -1432,12 +1565,12 @@
                         if (!currentUser || !currentUser.uid) throw new Error('Not authenticated');
                         await setDoc(getBudgetsDocRef(currentUser.uid, month), newBudgets);
                         budgets = newBudgets;
-                        alert('Budgets have been reset.');
+                        showToast('Budgets have been reset.', 'success');
                         renderBudgetEditorForContainer(container);
                         renderDashboard();
                     } catch (e) {
                         console.error('Error resetting budgets: ', e);
-                        alert('Failed to reset budgets: ' + (e && e.message ? e.message : String(e)));
+                        showToast('Failed to reset budgets: ' + (e && e.message ? e.message : String(e)), 'error');
                     }
                 };
 
@@ -1449,7 +1582,7 @@
                 });
             };
             
-            const renderBudgetStatus = (filteredTransactionsArg) => {
+            const renderBudgetStatus = (filteredTransactionsArg, isYearOnly = false, selectedKey) => {
                 const container = document.getElementById('budget-status');
                 if (!container) return;
                 
@@ -1462,11 +1595,16 @@
                 let visibleCount = 0;
                 categories.Expense.forEach(cat => {
                     const spent = spentByCategory[cat] || 0;
-                    const budget = budgets[cat] || 0;
-                    if (!budget || budget === 0) return;
-                    const remaining = budget - spent;
-                    const over = budget > 0 && spent > budget;
-                    const percentUsed = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : (spent > 0 ? 100 : 0);
+                    let budget = budgets[cat] || 0;
+                    let displayBudget = budget;
+                    if (isYearOnly) {
+                        // budgets are stored per-month; show annualized budget (monthly * 12)
+                        displayBudget = budget * 12;
+                    }
+                    if (!displayBudget || displayBudget === 0) return;
+                    const remaining = displayBudget - spent;
+                    const over = displayBudget > 0 && spent > displayBudget;
+                    const percentUsed = displayBudget > 0 ? Math.min(100, Math.round((spent / displayBudget) * 100)) : (spent > 0 ? 100 : 0);
                     const card = document.createElement('div');
                     // compact style: small text, concise layout (suitable for mobile)
                     card.className = 'p-2 rounded-lg border text-sm ' + (over ? 'border-red-300 bg-red-50 dark:bg-red-900/30' : 'border-gray-200 bg-white dark:bg-gray-800');
@@ -1474,11 +1612,11 @@
                         <div class="flex items-center justify-between gap-2">
                             <div class="min-w-0">
                                 <div class="font-semibold truncate ${over ? 'text-red-700 dark:text-red-200' : 'text-gray-700 dark:text-gray-200'}">${cat}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">B ${formatCurrency(budget)} • R ${formatCurrency(remaining)}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">B ${formatCurrency(displayBudget)} • R ${formatCurrency(remaining)}${isYearOnly ? ' • (annual)' : ''}</div>
                             </div>
                             <div class="text-right">
                                 <div class="font-bold ${over ? 'text-red-600 dark:text-red-300' : 'text-gray-800 dark:text-gray-100'}">${formatCurrency(spent)}</div>
-                                <div class="text-xs ${over ? 'text-red-600' : 'text-gray-500'}">${budget === 0 ? 'No budget' : (over ? `Over ${formatCurrency(Math.abs(remaining))}` : `${percentUsed}%`)}</div>
+                                <div class="text-xs ${over ? 'text-red-600' : 'text-gray-500'}">${displayBudget === 0 ? 'No budget' : (over ? `Over ${formatCurrency(Math.abs(remaining))}` : `${percentUsed}%`)}</div>
                             </div>
                         </div>
                         <div class="w-full mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
@@ -1553,8 +1691,148 @@
             });
             timePeriodFilter.addEventListener('change', renderDashboard);
             exportBtn.addEventListener('click', exportToExcel);
+            const importBtn = document.getElementById('import-btn');
+            const importFileInput = document.getElementById('import-file-input');
+            const parseImportedRows = (file, cb) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = e.target.result;
+                    let workbook;
+                    try {
+                        workbook = XLSX.read(data, { type: 'binary' });
+                    } catch (err) {
+                        cb(err);
+                        return;
+                    }
+                    const firstSheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    cb(null, json);
+                };
+                // choose correct readAs for binary files vs csv
+                const name = file.name || '';
+                if (name.toLowerCase().endsWith('.csv')) reader.readAsText(file);
+                else reader.readAsBinaryString(file);
+            };
+
+            const normalizeImported = (rows) => {
+                // expect columns: Date, Description, Category, Type, Account, Amount (case-insensitive)
+                const normalized = [];
+                rows.forEach(r => {
+                    const keys = Object.keys(r);
+                    const map = {};
+                    keys.forEach(k => map[k.trim().toLowerCase()] = r[k]);
+                    const dateVal = map['date'] || map['tanggal'] || map['tgl'] || '';
+                    const desc = map['description'] || map['keterangan'] || '';
+                    const cat = map['category'] || map['kategori'] || '';
+                    const type = (map['type'] || map['tipe'] || '').toString() || (Number(map['amount']) < 0 ? 'Expense' : 'Income');
+                    const account = map['account'] || map['akun'] || '';
+                    const amtRaw = map['amount'] || map['jumlah'] || map['nominal'] || 0;
+                    const amt = parseFloat(String(amtRaw).toString().replace(/[^0-9\-\.]/g, '')) || 0;
+                    // coerce date to YYYY-MM-DD if possible
+                    let dateStr = '';
+                    try {
+                        const d = new Date(dateVal);
+                        if (!isNaN(d.getTime())) dateStr = d.toISOString().substring(0,10);
+                    } catch (e) {}
+                    normalized.push({ date: dateStr || (new Date()).toISOString().substring(0,10), description: desc, category: cat || 'Other', type: type || 'Expense', account: account || 'Cash', amount: Math.abs(amt) });
+                });
+                return normalized;
+            };
+
+            importBtn.addEventListener('click', () => importFileInput.click());
+            importFileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                parseImportedRows(file, async (err, rows) => {
+                    if (err) return showToast('Failed to parse file: ' + (err && err.message ? err.message : String(err)), 'error');
+                    if (!rows || rows.length === 0) return showToast('No rows found in the file.', 'error');
+                    const normalized = normalizeImported(rows);
+                    // show confirm modal
+                    try {
+                        const ok = await showConfirmModal(`Import ${normalized.length} rows into transactions?`);
+                        if (!ok) return;
+                    } catch (e) { return; }
+
+                    // insert transactions: if authenticated, add to Firestore; else add to local state
+                    if (currentUser && currentUser.uid) {
+                        try {
+                            for (const tx of normalized) {
+                                await addDoc(getTransactionsCol(currentUser.uid), tx);
+                            }
+                            showToast('Import completed successfully.', 'success');
+                        } catch (e) {
+                            console.error('Import to Firestore failed: ', e);
+                            showToast('Import failed: ' + (e && e.message ? e.message : String(e)), 'error');
+                        }
+                    } else {
+                        // optimistic local insert
+                        normalized.forEach(tx => {
+                            const id = 'local-' + Math.random().toString(36).slice(2,9);
+                            allTransactions.push({ id, ...tx });
+                        });
+                        try { populateYearSelect(); } catch (e) {}
+                        populateMonthFilter();
+                        renderDashboard();
+                        showToast('Import completed locally (not saved to cloud). Sign in to persist to Firestore.', 'info', 6000);
+                    }
+                    importFileInput.value = '';
+                });
+            });
             const searchInputEl = document.getElementById('search-input');
             if (searchInputEl) searchInputEl.addEventListener('input', renderDashboard);
+            // Toast & UI helpers
+            const toastContainer = document.getElementById('toast-container');
+            const showToast = (msg, type = 'info', ttl = 4000) => {
+                try {
+                    if (!toastContainer) return; 
+                    const el = document.createElement('div');
+                    el.className = 'max-w-xs w-full px-4 py-2 rounded shadow-lg text-sm text-white';
+                    el.style.opacity = '0';
+                    if (type === 'error') el.classList.add('bg-red-600');
+                    else if (type === 'success') el.classList.add('bg-green-600');
+                    else el.classList.add('bg-gray-800');
+                    el.textContent = msg;
+                    toastContainer.appendChild(el);
+                    // animate
+                    requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transition = 'opacity 200ms'; });
+                    setTimeout(() => {
+                        el.style.opacity = '0';
+                        setTimeout(() => { try { toastContainer.removeChild(el); } catch (e) {} }, 250);
+                    }, ttl);
+                } catch (e) { console.error('showToast error', e); }
+            };
+
+            // spinner helpers: inject simple inline svg
+            const injectSpinner = (btn) => {
+                if (!btn) return;
+                btn.dataset._orig = btn.innerHTML;
+                btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>' + (btn.dataset._text || btn.textContent || '');
+                btn.disabled = true;
+            };
+            const removeSpinner = (btn) => {
+                if (!btn) return;
+                try { if (btn.dataset._orig !== undefined) btn.innerHTML = btn.dataset._orig; } catch (e) {}
+                btn.disabled = false;
+            };
+
+            // Auth failure cooldown
+            let authFailCount = 0;
+            let authCooldownUntil = 0; // timestamp ms
+            const AUTH_FAIL_LIMIT = 5;
+            const AUTH_COOLDOWN_MS = 60 * 1000; // 60s cooldown after limit
+
+            const isAuthCooldown = () => {
+                return Date.now() < (authCooldownUntil || 0);
+            };
+
+            const recordAuthFailure = () => {
+                authFailCount = (authFailCount || 0) + 1;
+                if (authFailCount >= AUTH_FAIL_LIMIT) {
+                    authCooldownUntil = Date.now() + AUTH_COOLDOWN_MS;
+                    showToast('Too many failed attempts. Try again in 60 seconds.', 'error', 5000);
+                }
+            };
 
             // --- Firebase Auth setup & UI wiring ---
             const auth = getAuth();
@@ -1573,14 +1851,28 @@
             const authCancel = document.getElementById('auth-cancel');
             const authSubmit = document.getElementById('auth-submit');
 
+            // Full-page login elements (separate UI shown when user is not authenticated)
+            const fullLoginPage = document.getElementById('full-login-page');
+            const appRoot = document.getElementById('app-root');
+            const fullEmail = document.getElementById('full-email');
+            const fullPassword = document.getElementById('full-password');
+            const fullLoginSubmit = document.getElementById('full-login-submit');
+            const fullRegisterBtn = document.getElementById('full-register-btn');
+            const fullForgotBtn = document.getElementById('full-forgot-btn');
+            const fullLoginMsg = document.getElementById('full-login-msg');
+
             let authMode = 'login'; // or 'register'
 
             const openAuthModal = (mode) => {
                 authMode = mode;
                 authTitle.textContent = mode === 'login' ? 'Login' : 'Register';
+                // adjust submit button label for clarity
+                if (authSubmit) authSubmit.textContent = mode === 'login' ? 'Login' : 'Register';
                 authEmail.value = '';
                 authPassword.value = '';
                 authModal.classList.remove('hidden');
+                // focus the email input for convenience
+                try { if (authEmail) { setTimeout(() => authEmail.focus(), 50); } } catch (e) {}
             };
 
             const closeAuthModal = () => { authModal.classList.add('hidden'); };
@@ -1590,10 +1882,13 @@
             if (authCancel) authCancel.addEventListener('click', closeAuthModal);
 
             if (authSubmit) authSubmit.addEventListener('click', async () => {
+                if (isAuthCooldown()) { showToast('Too many failed attempts. Please wait before trying again.','error',4000); return; }
                 const email = authEmail.value.trim();
                 const password = authPassword.value;
-                if (!email || !password) return alert('Enter email and password');
+                if (!email || !password) { showToast('Enter email and password', 'error'); return; }
+                const origText = authSubmit.textContent;
                 try {
+                    injectSpinner(authSubmit);
                     if (authMode === 'register') {
                         const cred = await createUserWithEmailAndPassword(auth, email, password);
                         // create initial user documents in Firestore under /users/{uid}/...
@@ -1608,13 +1903,72 @@
                         } catch (docErr) {
                             console.error('Failed to create initial user documents: ', docErr);
                         }
+                        try {
+                            // send email verification
+                            if (cred && cred.user && typeof sendEmailVerification === 'function') {
+                                await sendEmailVerification(cred.user);
+                                showToast('Registration successful. A confirmation email has been sent.', 'success', 6000);
+                            } else {
+                                showToast('Registration successful. Please verify your email.', 'success', 6000);
+                            }
+                        } catch (verifyErr) {
+                            console.error('Failed to send verification email: ', verifyErr);
+                            showToast('Registered but failed to send confirmation email.', 'error');
+                        }
                     } else {
                         await signInWithEmailAndPassword(auth, email, password);
                     }
                     closeAuthModal();
                 } catch (err) {
                     console.error('Auth error: ', err);
-                    alert(err.message || 'Authentication failed');
+                    recordAuthFailure();
+                    showToast(err && err.message ? err.message : 'Authentication failed','error',5000);
+                } finally {
+                    try { removeSpinner(authSubmit); authSubmit.textContent = origText; } catch (e) {}
+                }
+            });
+
+            // Full-page login button handlers
+            if (fullLoginSubmit) fullLoginSubmit.addEventListener('click', async () => {
+                if (isAuthCooldown()) { showToast('Too many failed attempts. Please wait before trying again.','error',4000); return; }
+                const email = fullEmail && fullEmail.value ? fullEmail.value.trim() : '';
+                const password = fullPassword && fullPassword.value ? fullPassword.value : '';
+                if (!email || !password) { showToast('Enter email and password','error'); return; }
+                try {
+                    injectSpinner(fullLoginSubmit);
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (err) {
+                    console.error('Full-login sign in failed: ', err);
+                    recordAuthFailure();
+                    showToast(err && err.message ? err.message : 'Sign in failed','error',4000);
+                } finally {
+                    try { removeSpinner(fullLoginSubmit); } catch (e) {}
+                }
+            });
+
+            // submit on Enter key for convenience
+            if (fullEmail) fullEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (fullLoginSubmit) fullLoginSubmit.click(); } });
+            if (fullPassword) fullPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (fullLoginSubmit) fullLoginSubmit.click(); } });
+
+            if (fullRegisterBtn) fullRegisterBtn.addEventListener('click', () => {
+                // open register modal and prefill email if present
+                const e = fullEmail && fullEmail.value ? fullEmail.value.trim() : '';
+                openAuthModal('register');
+                if (e && authEmail) authEmail.value = e;
+            });
+
+            if (fullForgotBtn) fullForgotBtn.addEventListener('click', () => {
+                // hide full-login and open forgot-email modal
+                if (fullLoginPage) fullLoginPage.classList.add('hidden');
+                if (authModal) authModal.classList.add('hidden');
+                if (forgotEmailModal) {
+                    forgotEmailModal.classList.remove('hidden');
+                    if (forgotEmailInput) {
+                        // prefill with email if present
+                        const e = fullEmail && fullEmail.value ? fullEmail.value.trim() : '';
+                        if (e) forgotEmailInput.value = e;
+                        try { forgotEmailInput.focus(); } catch (er) {}
+                    }
                 }
             });
 
@@ -1635,6 +1989,84 @@
                 document.addEventListener('click', (e) => { if (!userMenu.classList.contains('hidden')) userMenu.classList.add('hidden'); });
             }
             if (userMenuLogout) userMenuLogout.addEventListener('click', async () => { try { await signOut(auth); } catch (e) { /* ignore */ } });
+            const forgotLink = document.getElementById('forgot-password-link');
+            const forgotEmailModal = document.getElementById('forgot-email-modal');
+            const forgotEmailInput = document.getElementById('forgot-email-input');
+            const forgotEmailCancel = document.getElementById('forgot-email-cancel');
+            const forgotEmailSend = document.getElementById('forgot-email-send');
+
+            if (forgotLink) forgotLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const email = (authEmail && authEmail.value) ? authEmail.value.trim() : '';
+                if (!email) {
+                    // if user didn't type email in login form, open modal to ask for it
+                    // hide the auth modal so it doesn't overlap
+                    if (authModal) authModal.classList.add('hidden');
+                    if (forgotEmailModal) {
+                        forgotEmailModal.classList.remove('hidden');
+                        if (forgotEmailInput) try { forgotEmailInput.focus(); } catch (er) {}
+                    }
+                    return;
+                }
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showToast('Password reset email sent. Check your inbox.','success',4000);
+                    if (authModal) authModal.classList.add('hidden');
+                } catch (err) {
+                    console.error('Failed to send reset email: ', err);
+                    recordAuthFailure();
+                    showToast('Failed to send reset email: ' + (err && err.message ? err.message : String(err)),'error',5000);
+                }
+            });
+
+            if (forgotEmailCancel) forgotEmailCancel.addEventListener('click', () => {
+                if (forgotEmailModal) forgotEmailModal.classList.add('hidden');
+                // re-open auth modal so user can continue signing in
+                if (authModal) authModal.classList.remove('hidden');
+            });
+            if (forgotEmailSend) forgotEmailSend.addEventListener('click', async () => {
+                const email = (forgotEmailInput && forgotEmailInput.value) ? forgotEmailInput.value.trim() : '';
+                if (!email) return showToast('Enter an email address.','error');
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showToast('Password reset email sent. Check your inbox.','success',4000);
+                    if (forgotEmailModal) forgotEmailModal.classList.add('hidden');
+                    if (authModal) authModal.classList.add('hidden');
+                } catch (err) {
+                    console.error('Failed to send reset email from forgot-email modal: ', err);
+                    recordAuthFailure();
+                    showToast('Failed to send reset email: ' + (err && err.message ? err.message : String(err)),'error',5000);
+                }
+            });
+
+            const userMenuChangeBtn = document.getElementById('user-menu-change-pw');
+            const changePwModal = document.getElementById('change-password-modal');
+            const changePwCancel = document.getElementById('change-pw-cancel');
+            const changePwSubmit = document.getElementById('change-pw-submit');
+            if (userMenuChangeBtn) userMenuChangeBtn.addEventListener('click', () => {
+                if (!currentUser) return alert('You must be signed in to change password.');
+                if (changePwModal) changePwModal.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+            });
+            if (changePwCancel) changePwCancel.addEventListener('click', () => { if (changePwModal) changePwModal.classList.add('hidden'); });
+            if (changePwSubmit) changePwSubmit.addEventListener('click', async () => {
+                const cur = document.getElementById('current-password').value;
+                const nw = document.getElementById('new-password').value;
+                if (!cur || !nw) return showToast('Enter current and new password.','error');
+                if (nw.length < 6) return showToast('New password must be at least 6 characters.','error');
+                try {
+                    if (!currentUser) throw new Error('Not authenticated');
+                    const cred = EmailAuthProvider.credential(currentUser.email, cur);
+                    await reauthenticateWithCredential(currentUser, cred);
+                    await updatePassword(currentUser, nw);
+                    showToast('Password changed successfully.','success',4000);
+                    if (changePwModal) changePwModal.classList.add('hidden');
+                } catch (err) {
+                    console.error('Change password failed: ', err);
+                    recordAuthFailure();
+                    showToast('Failed to change password: ' + (err && err.message ? err.message : String(err)),'error',5000);
+                }
+            });
 
             // TestWrite removed
 
@@ -1658,12 +2090,21 @@
                     if (userInfo) userInfo.classList.remove('hidden');
                     if (loginBtn) loginBtn.classList.add('hidden');
                     if (registerBtn) registerBtn.classList.add('hidden');
+                    // hide full-login and show app
+                    if (fullLoginPage) fullLoginPage.classList.add('hidden');
+                    if (appRoot) appRoot.classList.remove('hidden');
                     // subscribe to user-scoped data
                     try { subscribeCategoriesForUser(user.uid); } catch (e) { console.error('subscribeCategoriesForUser failed: ', e); }
                     try { subscribeTransactionsForUser(user.uid); } catch (e) { console.error('subscribeTransactionsForUser failed: ', e); }
                     try { loadBudgetsForMonth(); } catch (e) { console.error('loadBudgetsForMonth failed: ', e); }
                 } else {
                     // delay clearing state briefly to avoid wiping during transient auth flips
+                    // show full-login (app hidden)
+                    if (fullLoginPage) {
+                        fullLoginPage.classList.remove('hidden');
+                        try { setTimeout(() => { if (fullEmail) fullEmail.focus(); }, 50); } catch (e) {}
+                    }
+                    if (appRoot) appRoot.classList.add('hidden');
                     if (_authClearTimer) { clearTimeout(_authClearTimer); }
                     _authClearTimer = setTimeout(() => {
                         _authClearTimer = null;
