@@ -44,48 +44,49 @@
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8">
 
-    <!-- Header -->
+    <!-- Header (mobile-first): Home left, icons right, Year/Month selects below) -->
     <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-            <div class="w-full sm:w-auto flex flex-col items-start sm:flex-row sm:items-center gap-4 sm:gap-2">
-                <div class="flex items-center space-x-2">
-                    <label for="month-filter" class="font-semibold text-sm sm:text-base whitespace-nowrap">Monthly Report:</label>
-                    <select id="month-filter" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
-                </div>
-                <div class="flex items-center space-x-3 self-start sm:self-center">
-                    <button id="export-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition text-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <span class="hidden sm:inline">Export</span>
-                    </button>
-                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                        <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                    </button>
-                    <div id="auth-controls" class="flex items-center gap-2 ml-2">
-                        <button id="login-btn" class="bg-transparent border border-blue-600 text-blue-600 px-3 py-1 rounded-lg text-sm hover:bg-blue-50">Login</button>
-                        <button id="register-btn" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700">Register</button>
-                        <div id="user-info" class="hidden items-center gap-2 relative">
-                                    <!-- user avatar/button -->
-                                    <button id="user-menu-btn" class="ml-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:opacity-90" aria-label="User menu">
-                                        <span class="sr-only">Open user menu</span>
-                                        <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-medium text-white">U</div>
-                                    </button>
-                            <!-- dropdown menu -->
-                            <div id="user-menu" class="hidden absolute right-0 mt-10 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
-                                <div class="p-3">
-                                    <div class="text-sm text-gray-600 dark:text-gray-300 truncate" id="user-menu-email"></div>
-                                    <div class="mt-3">
-                                        <button id="user-menu-logout" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
-                                    </div>
+        <div class="w-full flex items-center justify-between">
+            <div class="flex items-center">
+                <button id="home-btn" class="text-lg font-semibold text-gray-800 dark:text-gray-100">Home</button>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button id="export-btn" class="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" aria-label="Export">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                </button>
+
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none" aria-label="Toggle theme">
+                    <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                </button>
+
+                <div id="auth-controls" class="flex items-center gap-2">
+                    <button id="login-btn" class="hidden bg-transparent border border-blue-600 text-blue-600 px-3 py-1 rounded-lg text-sm">Login</button>
+                    <button id="register-btn" class="hidden bg-blue-600 text-white px-3 py-1 rounded-lg text-sm">Register</button>
+                    <div id="user-info" class="items-center gap-2 relative">
+                        <button id="user-menu-btn" class="ml-2 p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:opacity-90" aria-label="User menu">
+                            <span class="sr-only">Open user menu</span>
+                            <div class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-medium text-white">U</div>
+                        </button>
+                        <div id="user-menu" class="hidden absolute right-0 mt-10 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50">
+                            <div class="p-3">
+                                <div class="text-sm text-gray-600 dark:text-gray-300 truncate" id="user-menu-email"></div>
+                                <div class="mt-3">
+                                    <button id="user-menu-logout" class="w-full bg-red-500 text-white py-2 rounded text-sm">Logout</button>
                                 </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </div>
-        </header>
+        </div>
+
+        <div class="w-full mt-3 sm:mt-0 sm:w-auto flex items-center space-x-2">
+            <select id="year-select" class="w-28 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
+            <select id="month-filter" class="w-40 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></select>
+        </div>
+    </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -797,29 +798,59 @@
             };
 
             const populateMonthFilter = () => {
-                const months = [...new Set(allTransactions.map(t => t.date.substring(0, 7)))].sort().reverse();
+                // Populate months based on selected year (Jan..Dec)
+                const yearSelect = document.getElementById('year-select');
+                const selectedYear = yearSelect ? yearSelect.value : (new Date()).getFullYear().toString();
                 const currentSelection = monthFilter.value;
                 monthFilter.innerHTML = '';
-                
-                const now = new Date();
-                const currentMonthStr = now.toISOString().substring(0, 7);
-                if (!months.includes(currentMonthStr)) {
-                    months.unshift(currentMonthStr);
+
+                // create months Jan..Dec for the selected year
+                for (let m = 0; m < 12; m++) {
+                    const monthIndex = (m + 1).toString().padStart(2, '0');
+                    const monthStr = `${selectedYear}-${monthIndex}`;
+                    const date = new Date(parseInt(selectedYear, 10), m, 1);
+                    const option = document.createElement('option');
+                    option.value = monthStr;
+                    option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    monthFilter.appendChild(option);
                 }
 
-                months.forEach(monthStr => {
-                    const [year, month] = monthStr.split('-');
-                    const date = new Date(year, month - 1);
-                    const option = document.createElement('option');
-                    option.value = monthStr; option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                    monthFilter.appendChild(option);
-                });
-
-                if (currentSelection && months.includes(currentSelection)) {
+                // try to preserve previous selection if it's in the same year
+                if (currentSelection && currentSelection.startsWith(selectedYear)) {
                     monthFilter.value = currentSelection;
                 } else {
-                    monthFilter.value = currentMonthStr;
+                    // default to current month if it matches selected year, otherwise Jan of selected year
+                    const now = new Date();
+                    const currentMonthStr = now.toISOString().substring(0, 7);
+                    if (currentMonthStr.startsWith(selectedYear)) monthFilter.value = currentMonthStr;
+                    else monthFilter.value = `${selectedYear}-01`;
                 }
+            };
+
+            const populateYearSelect = () => {
+                const yearSelect = document.getElementById('year-select');
+                if (!yearSelect) return;
+                yearSelect.innerHTML = '';
+                // determine earliest and latest years from data (or use last 3 years default)
+                const yearsSet = new Set(allTransactions.map(t => (t.date || '').substring(0, 4)).filter(y => y));
+                const years = Array.from(yearsSet).map(y => parseInt(y, 10)).filter(n => !isNaN(n)).sort((a,b)=>a-b);
+                const now = new Date();
+                if (years.length === 0) {
+                    // fallback: show current year and two previous years
+                    for (let y = now.getFullYear() - 2; y <= now.getFullYear(); y++) {
+                        const opt = document.createElement('option'); opt.value = String(y); opt.textContent = String(y); yearSelect.appendChild(opt);
+                    }
+                } else {
+                    const minY = years[0];
+                    const maxY = years[years.length - 1];
+                    // if dataset covers >=3 years, show every year between min and max
+                    for (let y = minY; y <= maxY; y++) { const opt = document.createElement('option'); opt.value = String(y); opt.textContent = String(y); yearSelect.appendChild(opt); }
+                }
+                // set default to current year if available
+                const currentYear = String(now.getFullYear());
+                if (Array.from(yearSelect.options).some(o=>o.value === currentYear)) yearSelect.value = currentYear;
+                // wire change
+                yearSelect.onchange = () => populateMonthFilter();
             };
 
             window.startEditTransaction = (id) => {
@@ -1668,6 +1699,9 @@
                 }
                 updateVisibilityUI();
 
+                try { populateYearSelect(); } catch (e) {}
+                populateMonthFilter();
+
                 populateAccountOptions(desktopFormContainer, accounts);
                 populateAccountOptions(mobileFormContainer, accounts);
                 
@@ -1715,6 +1749,7 @@
                         const initialDocs = snap.docs.map(d => ({ id: d.id, path: d.ref.path, data: d.data() }));
                         console.log('Initial transaction docs detail:', initialDocs.map(d => ({ id: d.id, path: d.path, dateType: d.data && d.data.date ? (typeof d.data.date) : 'missing', dateValue: d.data && d.data.date ? d.data.date : null })));
                         setAllTransactionsFromRaw(initialDocs);
+                        try { populateYearSelect(); } catch (e) {}
                         populateMonthFilter();
                         renderDashboard();
                     } catch (err) {
@@ -1727,6 +1762,7 @@
                         const docsDetail = snapshot.docs.map(d => ({ id: d.id, path: d.ref.path, data: d.data() }));
                         console.log('Snapshot transaction docs detail:', docsDetail.map(d => ({ id: d.id, path: d.path, dateType: d.data && d.data.date ? (typeof d.data.date) : 'missing', dateValue: d.data && d.data.date ? d.data.date : null })));
                         setAllTransactionsFromRaw(docsDetail);
+                        try { populateYearSelect(); } catch (e) {}
                         populateMonthFilter();
                         renderDashboard();
                         try { updateTrendAnalysisCards(allTransactions); } catch (e) { /* safe */ }
